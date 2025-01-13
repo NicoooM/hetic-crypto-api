@@ -1,33 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend,
-} from "chart.js";
-// import API from "services/api";
-import { Line } from "react-chartjs-2";
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Legend
-);
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface PriceEvolution {
     date: string;
     price: number;
 }
 
-// Déplacer les fakeData en dehors du composant comme données constantes
 const fakeData: PriceEvolution[] = [
     { date: "2025-01-01", price: 1000 },
     { date: "2025-01-02", price: 1020 },
@@ -47,11 +25,6 @@ const Dashboard = () => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                // Commenter l'appel API réel
-                // const response = await API.get("/wallet/get_data");
-                // setData(response.data);
-
-                // Simuler un délai de chargement pour tester le loader
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 setData(fakeData);
                 setError(null);
@@ -65,40 +38,33 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const chartData = {
-        labels: data.map((entry) => entry.date),
-        datasets: [
-            {
-                label: "Crypto Wallet Price Evolution",
-                data: data.map((entry) => entry.price),
-                borderColor: "rgba(75, 192, 192, 1)",
-                backgroundColor: "rgba(75, 192, 192, 0.2)",
-                tension: 0.4,
-            },
-        ],
-    };
-
-    const chartOptions = {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: true,
-            },
-            title: {
-                display: true,
-                text: "Crypto Wallet Price Evolution",
-            },
-        },
-    };
-
     return (
         <div className="m-10 p-8 bg-white border border-gray-200 rounded-lg h-[85vh]">
             <h1 className="text-2xl font-bold font-mono">Crypto Wallet</h1>
+            <h4 className="text-sm text-primary mt-3">Find here all the information about your wallet</h4>
             {isLoading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!isLoading && !error && data.length > 0 && (
-                <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                    <Line data={chartData} options={chartOptions} />
+                <div className="px-4 pt-20 bg-white rounded-lg">
+                    <div style={{ width: '100%', height: 400 }}>
+                        <ResponsiveContainer>
+                            <LineChart data={data}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line 
+                                    type="monotone" 
+                                    dataKey="price" 
+                                    name="Crypto Wallet Price Evolution"
+                                    stroke="#FF5F2D" 
+                                    strokeWidth={2}
+                                    dot={{ fill: '#FF5F2D' }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             )}
             {!isLoading && !error && data.length === 0 && <p>No data available.</p>}
