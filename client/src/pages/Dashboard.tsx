@@ -11,7 +11,6 @@ import {
 } from "chart.js";
 // import API from "services/api";
 import { Line } from "react-chartjs-2";
-import API from "services/api";
 
 ChartJS.register(
     CategoryScale,
@@ -28,6 +27,16 @@ interface PriceEvolution {
     price: number;
 }
 
+// Déplacer les fakeData en dehors du composant comme données constantes
+const fakeData: PriceEvolution[] = [
+    { date: "2025-01-01", price: 1000 },
+    { date: "2025-01-02", price: 1020 },
+    { date: "2025-01-03", price: 980 },
+    { date: "2025-01-04", price: 1050 },
+    { date: "2025-01-05", price: 1100 },
+    { date: "2025-01-06", price: 1080 },
+    { date: "2025-01-07", price: 1150 },
+];
 
 const Dashboard = () => {
     const [data, setData] = useState<PriceEvolution[]>([]);
@@ -38,20 +47,13 @@ const Dashboard = () => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await API.get("/wallet/get_data");
-                setData(response.data);
+                // Commenter l'appel API réel
+                // const response = await API.get("/wallet/get_data");
+                // setData(response.data);
 
-                // const fakeData: PriceEvolution[] = [
-                //     { date: "2025-01-01", price: 1000 },
-                //     { date: "2025-01-02", price: 1020 },
-                //     { date: "2025-01-03", price: 980 },
-                //     { date: "2025-01-04", price: 1050 },
-                //     { date: "2025-01-05", price: 1100 },
-                //     { date: "2025-01-06", price: 1080 },
-                //     { date: "2025-01-07", price: 1150 },
-                // ];
-                // await new Promise((resolve) => setTimeout(resolve, 1000));
-                // setData(fakeData);
+                // Simuler un délai de chargement pour tester le loader
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                setData(fakeData);
                 setError(null);
             } catch (err) {
                 setError("Failed to fetch data. Please try again later.");
@@ -90,8 +92,8 @@ const Dashboard = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h1>Crypto Wallet</h1>
+        <div className="m-10 p-8 bg-white border border-gray-200 rounded-lg h-[85vh]">
+            <h1 className="text-2xl font-bold font-mono">Crypto Wallet</h1>
             {isLoading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!isLoading && !error && data.length > 0 && (
