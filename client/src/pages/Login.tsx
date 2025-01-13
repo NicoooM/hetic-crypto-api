@@ -28,7 +28,8 @@ const Login = () => {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 space-y-4">
+        <div className="flex items-center justify-center h-[calc(100vh-60px)]">
+        <form onSubmit={handleSubmit} className="w-full max-w-md p-4 space-y-6 bg-white border border-gray-200 rounded-lg">
             <h1 className="text-2xl font-bold">Login</h1>
             <input
                 type="email"
@@ -44,10 +45,11 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-2 border rounded"
             />
-            <button type="submit" className="w-full bg-primary text-white p-2 rounded">
+            <button type="submit" className="w-full bg-primary text-white p-2 rounded hover:bg-primary-hover">
                 Login
             </button>
         </form>
+        </div>
     );
 };
 
