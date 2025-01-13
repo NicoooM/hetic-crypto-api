@@ -1,15 +1,15 @@
 # backend
 
-To install dependencies:
+> Projet initialisé avec [Bun](https://bun.sh)
+
+Installer les dépendances :
 
 ```bash
-bun install
+bun i
 ```
 
-To run:
+Lancer le serveur :
 
 ```bash
-bun run index.ts
+bun dev
 ```
-
-This project was created using `bun init` in bun v1.1.43. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
