@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import API from "../services/api";
-import { useAuth } from "../hooks/useAuth";
+//import API from "../services/api";
+//import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
 const Login = () => {
-    const { user, login } = useAuth();
+    //const { user, login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -12,14 +12,16 @@ const Login = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const { data } = await API.post("/auth/login", { email, password });
-            login();
-            localStorage.setItem("token", data.accessToken);
-            console.log(data);
+            // const { data } = await API.post("/auth/login", { email, password });
+            // login();
+            // localStorage.setItem("token", data.accessToken);
+            console.log("Login attempt with:", { email, password });
         } catch (error) {
             console.error("Login failed");
         }
     };
+
+    const user = false; // temporaire pour test
 
     if (user) {
         return <Navigate to="/dashboard" />;
@@ -42,7 +44,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-2 border rounded"
             />
-            <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+            <button type="submit" className="w-full bg-primary text-white p-2 rounded">
                 Login
             </button>
         </form>
