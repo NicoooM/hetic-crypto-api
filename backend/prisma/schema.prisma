@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  role     Role     @default(USER)
+  name     String?  @db.VarChar(255)
+  email    String   @unique
+  password String   @db.VarChar(255)
+  wallets  Wallet[]
+}
+
+model Wallet {
+  id      Int             @id @default(autoincrement())
+  address String          @db.VarChar(255)
+  user    User            @relation(fields: [userId], references: [id])
+  userId  Int
+  history WalletHistory[]
+}
+
+model WalletHistory {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  quantity   Float
+  currency   Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+  wallet     Wallet   @relation(fields: [walletId], references: [id])
+  walletId   Int
+}
+
+model Currency {
+  id              Int               @id @default(autoincrement())
+  symbol          String            @unique @db.VarChar(255)
+  name            String?           @db.VarChar(255)
+  history         WalletHistory[]
+  currencyHistory CurrencyHistory[]
+}
+
+model CurrencyHistory {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  price      Float
+  currency   Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  @@unique([date, currencyId])
+}
+
+enum Role {
+  ADMIN
+  USER
+}

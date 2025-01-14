@@ -3,16 +3,19 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/index.ts"
+    "dev": "bun --hot src/index.ts",
+    "seed": "bun src/utils/utils.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/express": "^5.0.0"
+    "@types/express": "^5.0.0",
+    "prisma": "^6.2.1"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@prisma/client": "6.2.1",
     "express": "^4.21.2"
   }
 }
