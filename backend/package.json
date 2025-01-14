@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
-    "seed": "bun src/utils/utils.ts"
+    "seed": "bun src/utils/seed.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
