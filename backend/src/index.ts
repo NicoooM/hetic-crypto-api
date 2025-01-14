@@ -4,8 +4,13 @@ import { PrismaClient } from "@prisma/client";
 import type { Filters } from "types";
 
 const app = express();
-const port = process.env.PORT;
 const prisma = new PrismaClient();
+const port = process.env.PORT;
+
+if (!port) {
+  console.error("Port is not defined. Server cannot start.");
+  process.exit(1);
+}
 
 app.use(express.json());
 app.use(cors());
