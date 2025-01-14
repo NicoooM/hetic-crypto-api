@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const port = process.env.PORT;
 
 if (!port) {
-  console.error("Port is not defined. Server cannot start.");
+  console.error("Port is not defined");
   process.exit(1);
 }
 
