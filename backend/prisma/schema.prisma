@@ -42,7 +42,8 @@ model WalletHistory {
 
 model Currency {
   id              Int               @id @default(autoincrement())
-  name            String            @db.VarChar(255)
+  symbol          String            @unique @db.VarChar(255)
+  name            String?           @db.VarChar(255)
   history         WalletHistory[]
   currencyHistory CurrencyHistory[]
 }
@@ -53,6 +54,8 @@ model CurrencyHistory {
   price      Float
   currency   Currency @relation(fields: [currencyId], references: [id])
   currencyId Int
+
+  @@unique([date, currencyId])
 }
 
 enum Role {
