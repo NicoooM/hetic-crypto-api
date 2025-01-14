@@ -1,13 +1,17 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import { prisma } from "lib/prisma";
+import { router } from "routes";
 
 const app = express();
 const port = 8080;
-const prisma = new PrismaClient();
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+app.use(express.json());
+app.use("/api/v1", router);
 
 app.get("/history/:id", async (req, res) => {
   const walletId = parseInt(req.params.id, 10);
