@@ -34,6 +34,7 @@ model WalletHistory {
   id         Int      @id @default(autoincrement())
   date       DateTime
   quantity   Float
+  value      Float
   currency   Currency @relation(fields: [currencyId], references: [id])
   currencyId Int
   wallet     Wallet   @relation(fields: [walletId], references: [id])

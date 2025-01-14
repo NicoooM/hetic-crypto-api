@@ -44,6 +44,7 @@ const getCurrencyHistory = async (
           ? `Fetching data from ${new Date(toTimestamp * 1000)}...`
           : "Fetching base data..."
       );
+
       const url: string = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=${cryptocurrency}&tsym=${convertCurrency}&limit=${limit}${
         toTimestamp ? `&toTs=${toTimestamp}` : ""
       }&api_key=${process.env.CRYPTOCOMPARE_API_KEY}`;
@@ -78,7 +79,7 @@ const getCurrencyHistory = async (
         break;
       }
 
-      toTimestamp = chunkData[0].date.getTime() / 1000 - 1;
+      toTimestamp = chunkData[0].date.getTime() / 1000;
     }
   } catch (error) {
     console.error("Error fetching data:", error);
