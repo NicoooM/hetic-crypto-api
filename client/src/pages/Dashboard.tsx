@@ -149,7 +149,6 @@ const Dashboard = () => {
 
     const formatPercent = (value: number) => `${value.toFixed(2)}%`;
     const formatCurrency = (value: number) => `${value.toLocaleString()}$`;
-
     const timeRanges: TimeRange[] = ['1H', '24H', '7D', '1M', '1Y', 'ALL'];
 
     return (
@@ -158,19 +157,22 @@ const Dashboard = () => {
             <h4 className="text-sm text-primary mt-1">Find here all the information about your wallet</h4>
 
             <div className="flex flex-row justify-between mb-4 mt-10">
-                <h2 className="text-xl font-bold">Portfolio Value</h2>
+                <h2 className="text-xl font-bold font-mono">Portfolio Value</h2>
                 
                 {/* Time Range Selector */}
                 <div className="flex gap-2">
                     {timeRanges.map((range) => (
                         <button
                             key={range}
-                            onClick={() => setTimeRange(range)}
+                            onClick={range === '1H' ? undefined : () => setTimeRange(range)}
                             className={`px-4 py-2 rounded-md ${
                                 timeRange === range
                                     ? 'bg-primary text-white font-mono text-xs h-fit'
+                                    : range === '1H'
+                                    ? 'bg-gray-300 text-gray-500 font-mono text-xs h-fit cursor-not-allowed'
                                     : 'bg-gray-100 hover:bg-gray-200 font-mono text-xs h-fit'
                             }`}
+                            disabled={range === '1H'}
                         >
                             {range}
                         </button>
@@ -206,7 +208,7 @@ const Dashboard = () => {
             {!isLoading && !error && data.length === 0 && <p>No data available.</p>}
             {!isLoading && !error && (
                 <div className="mt-10">
-                    <h2 className="text-xl font-bold mb-4">Portfolio Overview</h2>
+                    <h2 className="text-xl font-bold font-mono mb-4">Portfolio Overview</h2>
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">

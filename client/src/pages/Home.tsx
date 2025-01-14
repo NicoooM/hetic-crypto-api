@@ -5,6 +5,10 @@ const Home = () => (
     <div className="flex justify-center items-center flex-col pt-40">
       <h1 className="text-3xl font-bold">Welcome to Monolith</h1>
       <p className="mt-4">All in one wallet tracker.</p>
+      <div className="flex flex-row gap-4">
+        <a href="/dashboard" className="bg-primary text-white px-4 py-2 rounded-md mt-4">Dashboard</a>
+        <a href="/fiscalite" className="bg-primary text-white px-4 py-2 rounded-md mt-4">Fiscalité</a>
+      </div>
     </div>
   </div>
 );
