@@ -20,23 +20,43 @@ app.get("/history/:id", async (req, res) => {
     res.status(400).json({ error: "Invalid wallet id" });
   }
 
-  const { startDate } = req.query;
-  const filters: Filters = { walletId: walletId };
+  const filters: Filters = {
+    walletId: walletId,
+    wallet: {
+      user: {
+        id: 1, // todo: user with auth
+      },
+    },
+  };
 
+  const { startDate } = req.query;
   if (startDate) {
-    filters.date = { ...filters.date, gte: new Date(startDate as string) };
+    filters.date = { gte: new Date(startDate as string) };
   }
 
   try {
-    const walletHistory = await prisma.walletHistory.findMany({
+    const history = await prisma.walletHistory.findMany({
       where: filters,
     });
 
-    if (walletHistory.length === 0) {
+    if (history.length === 0) {
       res.status(404).json({ error: "Wallet history not found" });
     }
 
-    res.json(walletHistory);
+    res.json(history);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/wallets", async (req, res) => {
+  try {
+    const wallets = await prisma.wallet.findMany({
+      where: {
+        userId: 1, // todo: user with auth
+      },
+    });
+    res.json(wallets);
   } catch {
     res.status(500).json({ error: "Internal server error" });
   }
