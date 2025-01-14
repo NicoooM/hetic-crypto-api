@@ -9,13 +9,21 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/express": "^5.0.0",
-    "prisma": "^6.2.1"
+    "prisma": "6.2.1"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@prisma/client": "6.2.1",
-    "express": "^4.21.2"
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.16",
+    "rate-limiter-flexible": "^5.0.4",
+    "zod": "^3.24.1"
   }
 }
