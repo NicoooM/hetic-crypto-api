@@ -46,8 +46,7 @@ export class AuthService {
         },
       });
 
-      // const emailService = new EmailService();
-      // await emailService.sendVerificationEmail(email, verificationToken);
+      await this.#emailService.sendVerificationEmail(email, verificationToken);
     } catch (error) {
       throw new Error(`Registration failed => ${error}`);
     }

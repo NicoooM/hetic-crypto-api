@@ -16,8 +16,6 @@ const authController = new AuthController();
 // authRouter.get("verify-email/:token", authController.verifyEmail);
 
 authRouter.post("/register", authController.register);
-authRouter.get("/verify-email/:token", (req, res) => {
-  const token = req.params.token;
-  res.send(`Hello World! From Auth ${token}`);
-});
+authRouter.get("/verify-email/:token", authController.verifyEmail);
+
 export { authRouter };

@@ -33,12 +33,19 @@ export class AuthController {
     }
   };
 
-  async verifyEmail(
+  verifyEmail = async (
     req: Request & { params: { token: string } },
     res: Response
-  ) {
-    const { token } = req.params;
-    console.log(token);
-    // await this.#authService.verifyEmail(token);
-  }
+  ) => {
+    try {
+      const { token } = req.params;
+
+      await this.#authService.verifyEmail(token);
+      res.json({ message: "Email verified successfully" });
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
+    }
+  };
 }
