@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import API from "../services/api";
-import { useAuth } from "../hooks/useAuth";
+//import API from "../services/api";
+//import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router-dom";
 
 const Login = () => {
-    const { user, login } = useAuth();
+    //const { user, login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -12,21 +12,24 @@ const Login = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const { data } = await API.post("/auth/login", { email, password });
-            login();
-            localStorage.setItem("token", data.accessToken);
-            console.log(data);
+            // const { data } = await API.post("/auth/login", { email, password });
+            // login();
+            // localStorage.setItem("token", data.accessToken);
+            console.log("Login attempt with:", { email, password });
         } catch (error) {
             console.error("Login failed");
         }
     };
+
+    const user = false; // temporaire pour test
 
     if (user) {
         return <Navigate to="/dashboard" />;
     }
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4 space-y-4">
+        <div className="flex items-center justify-center h-[calc(100vh-60px)]">
+        <form onSubmit={handleSubmit} className="w-full max-w-md p-4 space-y-6 bg-white border border-gray-200 rounded-lg">
             <h1 className="text-2xl font-bold">Login</h1>
             <input
                 type="email"
@@ -42,10 +45,11 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full p-2 border rounded"
             />
-            <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+            <button type="submit" className="w-full bg-primary text-white p-2 rounded hover:bg-primary-hover">
                 Login
             </button>
         </form>
+        </div>
     );
 };
 

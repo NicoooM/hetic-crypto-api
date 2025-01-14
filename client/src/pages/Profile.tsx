@@ -28,16 +28,16 @@ const Profile = () => {
 
     return (
         <div className="max-w-md mx-auto p-4 space-y-4">
-            <h1 className="text-2xl font-bold">Profile</h1>
+            <h1 className="text-2xl font-bold font-mono">Profile</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="text"
                     placeholder="Wallet"
                     value={wallet}
                     onChange={(e) => setWallet(e.target.value)}
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded font-mono"
                 />
-                <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+                <button type="submit" className="w-full bg-primary text-white p-2 rounded font-mono">
                     Update Wallet
                 </button>
             </form>
