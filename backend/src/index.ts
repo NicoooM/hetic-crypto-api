@@ -1,10 +1,13 @@
 import express from "express";
+import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import type { Filters } from "types";
 
 const app = express();
 const port = 8080;
 const prisma = new PrismaClient();
+
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -36,6 +39,21 @@ app.get("/history/:id", async (req, res) => {
     res.json(walletHistory);
   } catch {
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/wallet", async (req, res) => {
+  const { address, userId } = req.body;
+  try {
+    const wallet = await prisma.wallet.create({
+      data: {
+        userId: userId,
+        address: address,
+      },
+    });
+    res.status(201).json(wallet);
+  } catch {
+    res.status(400).json({ error: "Invalid request" });
   }
 });
 
