@@ -39,6 +39,21 @@ app.get("/history/:id", async (req, res) => {
   }
 });
 
+app.post("/wallet", async (req, res) => {
+  const { address, userId } = req.body;
+  try {
+    const wallet = await prisma.wallet.create({
+      data: {
+        userId: userId,
+        address: address,
+      },
+    });
+    res.status(201).json(wallet);
+  } catch {
+    res.status(400).json({ error: "Invalid request" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
 });
