@@ -1,13 +1,10 @@
 import jwt from "jsonwebtoken";
-import type { PrismaClient } from "@prisma/client";
 import { EmailService } from "./email.service";
 import { prisma } from "lib/prisma";
-import { StatusCodes } from "http-status-codes";
 import {
   BCRYPT_SALT_ROUNDS,
   JWT_REFRESH_TOKEN_EXPIRATION_TIME,
 } from "../constants";
-import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import type { LoginSchema, RegisterSchema } from "schemas/types";
 import { TokenService } from "./token.service";
