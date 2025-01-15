@@ -1,11 +1,13 @@
 import express from "express";
+import { prisma } from "lib/prisma";
+import { router } from "routes";
+import { verifyEnv } from "utils/verify-env";
 import cors from "cors";
-import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 import type { Filters } from "types";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const app = express();
-const prisma = new PrismaClient();
 const port = process.env.PORT;
 
 if (!port) {
@@ -13,8 +15,9 @@ if (!port) {
   process.exit(1);
 }
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+app.use("/api/v1", router);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -114,6 +117,8 @@ app.patch("/profile", async (req, res) => {
     res.status(400).json({ error: "Email and password are required" });
   }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   try {
     const user = await prisma.user.update({
       where: {
@@ -122,7 +127,7 @@ app.patch("/profile", async (req, res) => {
       data: {
         name: name || null,
         email: email, // todo: need to re-check if new email
-        password: password, // todo: don't forget to hash it
+        password: hashedPassword,
       },
     });
     res.status(200).json(user);
@@ -175,5 +180,6 @@ app.delete("/wallet/:id", async (req, res) => {
 });
 
 app.listen(port, () => {
+  verifyEnv();
   console.log(`Listening on port ${port}...`);
 });
