@@ -69,10 +69,10 @@ app.get("/wallets", async (req, res) => {
 });
 
 app.post("/wallet", async (req, res) => {
-  const { address, userId, title } = req.body;
+  const { address, title } = req.body;
 
-  if (!address || !userId || !title) {
-    res.status(400).json({ error: "Address and userId are required" });
+  if (!address || !title) {
+    res.status(400).json({ error: "Address and title are required" });
   }
 
   try {
