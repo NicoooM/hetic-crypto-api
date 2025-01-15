@@ -78,7 +78,7 @@ app.post("/wallet", async (req, res) => {
   try {
     const wallet = await prisma.wallet.create({
       data: {
-        userId: userId,
+        userId: 1, // todo: get user id with auth
         address: address,
         title: title,
       },
@@ -110,6 +110,31 @@ app.patch("/profile", async (req, res) => {
     res.status(201).json(user);
   } catch {
     res.status(400).json({ error: "Invalid request" });
+  }
+});
+
+app.delete("/wallet/:id", async (req, res) => {
+  const walletId = parseInt(req.params.id, 10);
+
+  if (isNaN(walletId)) {
+    res.status(400).json({ error: "Invalid wallet id" });
+  }
+
+  try {
+    const wallet = await prisma.wallet.delete({
+      where: {
+        id: walletId,
+        userId: 1, // todo: get user id with auth
+      },
+    });
+
+    if (!wallet) {
+      res.status(404).json({ error: "Wallet not found" });
+    }
+
+    res.json(wallet);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
