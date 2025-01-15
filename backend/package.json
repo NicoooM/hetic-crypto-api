@@ -7,6 +7,7 @@
     "seed": "bun src/utils/seed.ts"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
@@ -18,6 +19,7 @@
   "dependencies": {
     "@prisma/client": "6.2.1",
     "bignumber.js": "^9.1.2",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.2"
   }
