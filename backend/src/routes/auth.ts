@@ -1,21 +1,16 @@
 import { AuthController } from "controllers/auth.controller";
 import express from "express";
+import { verifyAccessToken } from "middleware/auth";
 
 const authRouter = express.Router();
 const authController = new AuthController();
 
-// router.post("/auth/login", authController.login);
-// router.post("/auth/logout", authController.logout);
-
-// router.post("/auth/refresh", authController.refresh);
-
-// authRouter.get("/test", (req, res) => {
-//   res.send("Hello World! From Auth");
-// });
-
-// authRouter.get("verify-email/:token", authController.verifyEmail);
+authRouter.post("/login", authController.login);
+authRouter.post("/profile", verifyAccessToken, () => {});
 
 authRouter.post("/register", authController.register);
+authRouter.post("/refresh-access-token", authController.refreshAccessToken);
 authRouter.get("/verify-email/:token", authController.verifyEmail);
+authRouter.post("/logout", authController.logout);
 
 export { authRouter };

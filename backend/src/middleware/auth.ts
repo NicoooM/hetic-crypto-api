@@ -4,11 +4,16 @@ import jwt from "jsonwebtoken";
 
 type DecodedToken = string | jwt.JwtPayload;
 
-export function verifyToken(req: Request, res: Response, next: NextFunction) {
+export function verifyAccessToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+    return;
   }
 
   const token = authHeader.split(" ")[1];
@@ -18,6 +23,6 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
     (req as Request & { user: DecodedToken }).user = decoded;
     next();
   } catch (err) {
-    return res.status(403).json({ message: "Invalid token" });
+    res.status(StatusCodes.FORBIDDEN).json({ message: "Invalid token" });
   }
 }

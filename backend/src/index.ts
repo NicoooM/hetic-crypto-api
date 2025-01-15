@@ -1,7 +1,8 @@
 import express from "express";
-import { PrismaClient } from "@prisma/client";
+
 import { prisma } from "lib/prisma";
 import { router } from "routes";
+import { verifyEnv } from "utils/verify-env";
 
 const app = express();
 const port = 8080;
@@ -42,5 +43,6 @@ app.get("/history/:id", async (req, res) => {
 });
 
 app.listen(port, () => {
+  verifyEnv();
   console.log(`Listening on port ${port}...`);
 });
