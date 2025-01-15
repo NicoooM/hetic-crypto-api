@@ -30,7 +30,7 @@ app.get("/history/:id", async (req, res) => {
     walletId: walletId,
     wallet: {
       user: {
-        id: 1, // todo: user with auth
+        id: 1, // todo: get user id with auth
       },
     },
   };
@@ -59,7 +59,7 @@ app.get("/wallets", async (req, res) => {
   try {
     const wallets = await prisma.wallet.findMany({
       where: {
-        userId: 1, // todo: user with auth
+        userId: 1, // todo: get user id with auth
       },
     });
     res.json(wallets);
@@ -70,6 +70,11 @@ app.get("/wallets", async (req, res) => {
 
 app.post("/wallet", async (req, res) => {
   const { address, userId } = req.body;
+
+  if (!address || !userId) {
+    res.status(400).json({ error: "Address and userId are required" });
+  }
+
   try {
     const wallet = await prisma.wallet.create({
       data: {
@@ -78,6 +83,30 @@ app.post("/wallet", async (req, res) => {
       },
     });
     res.status(201).json(wallet);
+  } catch {
+    res.status(400).json({ error: "Invalid request" });
+  }
+});
+
+app.post("/profile", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    res.status(400).json({ error: "Name, email, and password are required" });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: 1, // todo: get user id with auth
+      },
+      data: {
+        name: name,
+        email: email,
+        password: password, // todo: password security checks
+      },
+    });
+    res.status(201).json(user);
   } catch {
     res.status(400).json({ error: "Invalid request" });
   }
