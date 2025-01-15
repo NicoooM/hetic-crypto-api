@@ -69,6 +69,23 @@ app.get("/wallets", async (req, res) => {
   }
 });
 
+app.get("/profile", async (req, res) => {
+  try {
+    const profile = await prisma.user.findUnique({
+      where: {
+        id: 1, // todo: get user id with auth
+      },
+      select: {
+        name: true,
+        email: true,
+      },
+    });
+    res.json(profile);
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.post("/wallet", async (req, res) => {
   const { address, userId, title } = req.body;
 
