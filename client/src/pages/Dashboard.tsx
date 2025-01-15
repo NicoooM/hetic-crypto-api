@@ -20,74 +20,74 @@ interface AssetData {
 }
 
 // Ajout de données factices pour différentes périodes
-const generateFakeDataForTimeRange = (range: TimeRange): PriceEvolution[] => {
-    const now = new Date();
-    const data: PriceEvolution[] = [];
+// const generateFakeDataForTimeRange = (range: TimeRange): PriceEvolution[] => {
+//     const now = new Date();
+//     const data: PriceEvolution[] = [];
     
-    switch (range) {
-        case '1H':
-            // Données par 5 minutes
-            for (let i = 12; i >= 0; i--) {
-                const date = new Date(now.getTime() - i * 5 * 60000);
-                data.push({
-                    date: date.toLocaleTimeString(),
-                    price: 1000 + Math.random() * 50
-                });
-            }
-            break;
-        case '24H':
-            // Données par heure
-            for (let i = 24; i >= 0; i--) {
-                const date = new Date(now.getTime() - i * 3600000);
-                data.push({
-                    date: date.toLocaleTimeString(),
-                    price: 1000 + Math.random() * 100
-                });
-            }
-            break;
-        case '7D':
-            // Données par jour
-            for (let i = 7; i >= 0; i--) {
-                const date = new Date(now.getTime() - i * 86400000);
-                data.push({
-                    date: date.toLocaleDateString(),
-                    price: 1000 + Math.random() * 200
-                });
-            }
-            break;
-        case '1M':
-            // Données par 3 jours
-            for (let i = 10; i >= 0; i--) {
-                const date = new Date(now.getTime() - i * 3 * 86400000);
-                data.push({
-                    date: date.toLocaleDateString(),
-                    price: 1000 + Math.random() * 300
-                });
-            }
-            break;
-        case '1Y':
-            // Données par mois
-            for (let i = 12; i >= 0; i--) {
-                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                data.push({
-                    date: date.toLocaleDateString(),
-                    price: 1000 + Math.random() * 500
-                });
-            }
-            break;
-        case 'ALL':
-            // Données par année
-            for (let i = 5; i >= 0; i--) {
-                const date = new Date(now.getFullYear() - i, 0, 1);
-                data.push({
-                    date: date.getFullYear().toString(),
-                    price: 1000 + Math.random() * 1000
-                });
-            }
-            break;
-    }
-    return data;
-};
+//     switch (range) {
+//         case '1H':
+//             // Données par 5 minutes
+//             for (let i = 12; i >= 0; i--) {
+//                 const date = new Date(now.getTime() - i * 5 * 60000);
+//                 data.push({
+//                     date: date.toLocaleTimeString(),
+//                     price: 1000 + Math.random() * 50
+//                 });
+//             }
+//             break;
+//         case '24H':
+//             // Données par heure
+//             for (let i = 24; i >= 0; i--) {
+//                 const date = new Date(now.getTime() - i * 3600000);
+//                 data.push({
+//                     date: date.toLocaleTimeString(),
+//                     price: 1000 + Math.random() * 100
+//                 });
+//             }
+//             break;
+//         case '7D':
+//             // Données par jour
+//             for (let i = 7; i >= 0; i--) {
+//                 const date = new Date(now.getTime() - i * 86400000);
+//                 data.push({
+//                     date: date.toLocaleDateString(),
+//                     price: 1000 + Math.random() * 200
+//                 });
+//             }
+//             break;
+//         case '1M':
+//             // Données par 3 jours
+//             for (let i = 10; i >= 0; i--) {
+//                 const date = new Date(now.getTime() - i * 3 * 86400000);
+//                 data.push({
+//                     date: date.toLocaleDateString(),
+//                     price: 1000 + Math.random() * 300
+//                 });
+//             }
+//             break;
+//         case '1Y':
+//             // Données par mois
+//             for (let i = 12; i >= 0; i--) {
+//                 const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+//                 data.push({
+//                     date: date.toLocaleDateString(),
+//                     price: 1000 + Math.random() * 500
+//                 });
+//             }
+//             break;
+//         case 'ALL':
+//             // Données par année
+//             for (let i = 5; i >= 0; i--) {
+//                 const date = new Date(now.getFullYear() - i, 0, 1);
+//                 data.push({
+//                     date: date.getFullYear().toString(),
+//                     price: 1000 + Math.random() * 1000
+//                 });
+//             }
+//             break;
+//     }
+//     return data;
+// };
 
 const fakeTableData: AssetData[] = [
     {
@@ -132,9 +132,16 @@ const Dashboard = () => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                // Simuler un appel API
-                await new Promise((resolve) => setTimeout(resolve, 500));
-                const newData = generateFakeDataForTimeRange(timeRange);
+                // Appel API réel
+                const response = await fetch(`http://localhost:8080/history/1`);
+                const result = await response.json();
+                
+                // Transformation des données pour le graphique
+                const newData = result.map((item: any) => ({
+                    date: new Date(item.date).toLocaleDateString(), // Formatez la date
+                    price: item.quantity // Utilisez quantity pour le prix
+                }));
+                
                 setData(newData);
                 setError(null);
             } catch (err) {
