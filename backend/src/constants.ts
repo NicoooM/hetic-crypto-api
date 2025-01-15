@@ -18,6 +18,7 @@ export const REQUIRED_ENV_VARS = [
   "POSTGRES_USER",
   "POSTGRES_PASSWORD",
   "POSTGRES_DB",
+  "PORT",
 ] as const;
 
 export const BCRYPT_SALT_ROUNDS = 10;
