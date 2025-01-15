@@ -165,11 +165,21 @@ const createWalletHistory = async (wallet: string) => {
   );
   console.log(valuePerDay);
 
-  const walletHistory = Object.entries(valuePerDay).map(([date, value]) => ({
-    walletId: wallet,
-    date: new Date(date),
-    value,
-  }));
+  // Sort dates to ensure correct cumulative calculation
+  const sortedDates = Object.keys(valuePerDay).sort(
+    (a, b) => new Date(a).getTime() - new Date(b).getTime()
+  );
+
+  let cumulativeValue = 0;
+
+  const walletHistory = sortedDates.map((date) => {
+    cumulativeValue += valuePerDay[date]; // Add current day's value to the cumulative total
+    return {
+      walletId: wallet,
+      date: new Date(date),
+      value: cumulativeValue,
+    };
+  });
 
   console.log(walletHistory);
 
@@ -178,13 +188,11 @@ const createWalletHistory = async (wallet: string) => {
 
 (async () => {
   const walletHistory = await createWalletHistory(
-    "0xd2674da94285660c9b2353131bef2d8211369a4b"
+    "0x9B7e3b22E89a51103aEF7ADEf031201AAF10D795"
   );
 
-  const totalValue = walletHistory.reduce(
-    (accumulator, entry) => accumulator + entry.value,
-    0 // Initial value of the accumulator
-  );
+  const totalValue = walletHistory[walletHistory.length - 1]?.value || 0; // Total value at the last day
 
-  console.log("Total Wallet Value:", totalValue);
+  console.log("Cumulative Wallet History:", walletHistory);
+  console.log("Final Total Wallet Value:", totalValue);
 })();

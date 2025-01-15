@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import type { Filters } from "types";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -85,15 +86,15 @@ app.post("/wallet", async (req, res) => {
     });
     res.status(201).json(wallet);
   } catch {
-    res.status(400).json({ error: "Invalid request" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 app.patch("/profile", async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    res.status(400).json({ error: "Name, email, and password are required" });
+  if (!email || !password) {
+    res.status(400).json({ error: "Email and password are required" });
   }
 
   try {
@@ -102,14 +103,21 @@ app.patch("/profile", async (req, res) => {
         id: 1, // todo: get user id with auth
       },
       data: {
-        name: name,
-        email: email,
-        password: password, // todo: password security checks
+        name: name || null,
+        email: email, // todo: need to re-check if new email
+        password: password, // todo: don't forget to hash it
       },
     });
-    res.status(201).json(user);
-  } catch {
-    res.status(400).json({ error: "Invalid request" });
+    res.status(200).json(user);
+  } catch (error) {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      res.status(400).json({ error: "Account edition failed" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
@@ -121,20 +129,31 @@ app.delete("/wallet/:id", async (req, res) => {
   }
 
   try {
-    const wallet = await prisma.wallet.delete({
+    await prisma.walletHistory.deleteMany({
+      where: {
+        walletId: walletId,
+        wallet: {
+          userId: 1, // todo: get user id with auth
+        },
+      },
+    });
+    await prisma.wallet.delete({
       where: {
         id: walletId,
         userId: 1, // todo: get user id with auth
       },
     });
 
-    if (!wallet) {
+    res.status(204).send();
+  } catch (error) {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
       res.status(404).json({ error: "Wallet not found" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
     }
-
-    res.json(wallet);
-  } catch {
-    res.status(500).json({ error: "Internal server error" });
   }
 });
 
