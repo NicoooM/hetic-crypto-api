@@ -7,7 +7,7 @@ export class HistoryService {
   get = async (walletId: number, startDate) => {
     try {
       // todo: typing
-      const filters: Filters = {
+      const filters: any = {
         walletId: walletId,
         wallet: {
           user: {
