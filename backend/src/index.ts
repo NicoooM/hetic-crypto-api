@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import type { Filters } from "types";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -107,7 +108,7 @@ app.patch("/profile", async (req, res) => {
         password: password, // todo: password security checks
       },
     });
-    res.status(201).json(user);
+    res.status(200).json(user);
   } catch {
     res.status(400).json({ error: "Invalid request" });
   }
@@ -121,20 +122,31 @@ app.delete("/wallet/:id", async (req, res) => {
   }
 
   try {
-    const wallet = await prisma.wallet.delete({
+    await prisma.walletHistory.deleteMany({
+      where: {
+        walletId: walletId,
+        wallet: {
+          userId: 1, // todo: get user id with auth
+        },
+      },
+    });
+    await prisma.wallet.delete({
       where: {
         id: walletId,
         userId: 1, // todo: get user id with auth
       },
     });
 
-    if (!wallet) {
+    res.status(204).send();
+  } catch (error) {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
       res.status(404).json({ error: "Wallet not found" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
     }
-
-    res.json(wallet);
-  } catch {
-    res.status(500).json({ error: "Internal server error" });
   }
 });
 
