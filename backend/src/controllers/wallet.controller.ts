@@ -45,4 +45,13 @@ export class WalletController {
       res.status(500).json({ error: "Internal server error" });
     }
   };
+
+  all = async (req: Request, res: Response) => {
+    try {
+      const wallets = await this.#walletService.all();
+      res.json(wallets);
+    } catch {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  };
 }
