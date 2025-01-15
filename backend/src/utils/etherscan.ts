@@ -13,11 +13,11 @@ interface Transaction {
   from: string;
   to: string;
   value: string;
-  gas: string;
-  gasPrice: string;
+  gas: bigint;
+  gasPrice: bigint;
   isError: string;
-  cumulativeGasUsed: string;
-  gasUsed: string;
+  cumulativeGasUsed: bigint;
+  gasUsed: bigint;
 }
 
 interface TransactionData extends Transaction {
@@ -43,12 +43,10 @@ const getAllNormalTransactions = async (wallet: string) => {
     }
 
     // Filter out error transactions first, then map the remaining ones
-    const newTransactions = data.result
-      .filter((tx) => tx.isError === "0")
-      .map((transaction) => ({
-        ...transaction,
-        fromMyWallet: transaction.from.toLowerCase() === wallet.toLowerCase(),
-      }));
+    const newTransactions = data.result.map((transaction) => ({
+      ...transaction,
+      fromMyWallet: transaction.from.toLowerCase() === wallet.toLowerCase(),
+    }));
 
     if (newTransactions.length === 0) {
       break;
@@ -92,12 +90,10 @@ const getAllInternalTransactions = async (wallet: string) => {
     }
 
     // Filter out error transactions first, then map the remaining ones
-    const newTransactions = data.result
-      .filter((tx) => tx.isError === "0")
-      .map((transaction) => ({
-        ...transaction,
-        fromMyWallet: transaction.from.toLowerCase() === wallet.toLowerCase(),
-      }));
+    const newTransactions = data.result.map((transaction) => ({
+      ...transaction,
+      fromMyWallet: transaction.from.toLowerCase() === wallet.toLowerCase(),
+    }));
 
     if (newTransactions.length === 0) {
       break;
@@ -125,46 +121,39 @@ const getAllInternalTransactions = async (wallet: string) => {
 };
 
 const calculateValuePerDay = (transactions: TransactionData[]) => {
-  const valuePerDay: Record<string, BigNumber> = {};
+  const valuePerDay: Record<string, bigint> = {};
 
   transactions.forEach((transaction, index) => {
-    const date = new Date(Number(transaction.timeStamp) * 1000).toDateString();
+    // Convert timestamp to a Date object
+    const date = new Date(Number(transaction.timeStamp) * 1000);
 
-    // Convert all values to BigNumber
-    const transactionValue = new BigNumber(transaction.value);
-    const gasUsed = new BigNumber(transaction.gasUsed);
-    const gasPriceInWei = new BigNumber(transaction.gasPrice);
+    // Format the date as YYYY-MM-DD (ignoring time)
+    const formattedDate = date.toISOString().split("T")[0];
 
-    // Calculate gas cost in Ether
-    const gasCost = gasUsed
-      .multipliedBy(gasPriceInWei)
-      .dividedBy(new BigNumber(10).pow(18));
+    // Convert all values to BigInt
+    const transactionValue = BigInt(transaction.value);
 
     if (transaction.fromMyWallet) {
-      console.log(`Transaction ${index} (Outgoing):`);
-      console.log(`Date: ${date}`);
-      console.log(`Gas cost: ${gasCost.toString()} ETH`);
-      const totalDeduction = transactionValue
-        .dividedBy(new BigNumber(10).pow(18))
-        .plus(gasCost);
-      console.log(`Total deduction: ${totalDeduction.toString()} ETH`);
+      const gasUsed = BigInt(transaction.gasUsed);
+      const gasPriceInWei = BigInt(transaction.gasPrice);
 
-      valuePerDay[date] = (valuePerDay[date] || new BigNumber(0)).minus(
-        totalDeduction
-      );
+      // Deduct the transaction value and gas cost from the daily total
+      valuePerDay[formattedDate] =
+        (valuePerDay[formattedDate] || BigInt(0)) -
+        (transactionValue + gasUsed * gasPriceInWei);
     } else {
       console.log(`Transaction ${index} (Incoming):`);
-      console.log(`Date: ${date}`);
-      const valueToAdd = transactionValue.dividedBy(new BigNumber(10).pow(18));
-      console.log(`Value to add: ${valueToAdd.toString()} ETH`);
+      console.log(`Date: ${formattedDate}`);
 
-      valuePerDay[date] = (valuePerDay[date] || new BigNumber(0)).plus(
-        valueToAdd
-      );
+      // Add the transaction value to the daily total
+      valuePerDay[formattedDate] =
+        (valuePerDay[formattedDate] || BigInt(0)) + transactionValue;
     }
 
     console.log(
-      `Current value for ${date}: ${valuePerDay[date].toString()} ETH`
+      `Current value for ${formattedDate}: ${valuePerDay[
+        formattedDate
+      ].toString()} Wei`
     );
   });
 
@@ -180,17 +169,7 @@ const createWalletHistory = async (wallet: string) => {
     (a, b) => parseInt(a.timeStamp) - parseInt(b.timeStamp)
   );
 
-  console.log("First few transactions after sorting:");
-  allTransactions.slice(0, 5).forEach((tx, index) => {
-    const value = new BigNumber(tx.value).dividedBy(new BigNumber(10).pow(18));
-    console.log(
-      `${index + 1}. Timestamp: ${new Date(
-        parseInt(tx.timeStamp) * 1000
-      ).toISOString()}, Value: ${value.toString()} ETH, From: ${tx.from}, To: ${
-        tx.to
-      }`
-    );
-  });
+  console.log(allTransactions);
 
   const valuePerDay = calculateValuePerDay(allTransactions);
 
@@ -199,9 +178,9 @@ const createWalletHistory = async (wallet: string) => {
     (a, b) => new Date(a).getTime() - new Date(b).getTime()
   );
 
-  let cumulativeValue = new BigNumber(0);
+  let cumulativeValue = BigInt(0);
   const walletHistory = sortedDates.map((date) => {
-    cumulativeValue = cumulativeValue.plus(new BigNumber(valuePerDay[date]));
+    cumulativeValue = cumulativeValue + valuePerDay[date];
     console.log(
       `Date: ${date}, Daily Change: ${valuePerDay[
         date
@@ -210,7 +189,7 @@ const createWalletHistory = async (wallet: string) => {
     return {
       walletId: wallet,
       date: new Date(date),
-      value: cumulativeValue.toNumber(), // Convert back to number for storage/display
+      value: Number(cumulativeValue) / 10 ** 18, // Convert back to number for storage/display
     };
   });
 
@@ -224,20 +203,5 @@ const createWalletHistory = async (wallet: string) => {
 
   const totalValue = walletHistory[walletHistory.length - 1]?.value || 0; // Total value at the last day
 
-  // print the first 10
-
-  // print the total value
-  // console.log("Total Wallet Value:", totalValue.toFixed(2));
-
-  // // print the cumulative wallet history
-  // console.log("Cumulative Wallet History (from the first entry to the last):");
-
-  // console.log("Cumulative Wallet History:", walletHistory);
-  // console.log("Top 10 Wallet History:");
-  // walletHistory.slice(0, 10).forEach((entry, index) => {
-  //   console.log(
-  //     `${index + 1}. ${entry.date.toLocaleDateString()}: ${entry.value} Ether`
-  //   );
-  // });
-  console.log("Final Total Wallet Value:", totalValue);
+  console.log(`Total value for wallet : ${totalValue} Ether`);
 })();
