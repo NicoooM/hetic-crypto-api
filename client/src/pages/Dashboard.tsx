@@ -9,137 +9,31 @@ interface PriceEvolution {
 }
 
 interface AssetData {
-    asset: string;
     allocation: number;
     price: number;
-    change24h: number;
-    costBasis: number;
-    marketValue: number;
-    unrealizedReturn: number;
-    lastDayChange: number;
+    dailyPrice: number;
+    value: number;
+    dailyValue: number;
 }
-
-// Ajout de données factices pour différentes périodes
-// const generateFakeDataForTimeRange = (range: TimeRange): PriceEvolution[] => {
-//     const now = new Date();
-//     const data: PriceEvolution[] = [];
-    
-//     switch (range) {
-//         case '1H':
-//             // Données par 5 minutes
-//             for (let i = 12; i >= 0; i--) {
-//                 const date = new Date(now.getTime() - i * 5 * 60000);
-//                 data.push({
-//                     date: date.toLocaleTimeString(),
-//                     price: 1000 + Math.random() * 50
-//                 });
-//             }
-//             break;
-//         case '24H':
-//             // Données par heure
-//             for (let i = 24; i >= 0; i--) {
-//                 const date = new Date(now.getTime() - i * 3600000);
-//                 data.push({
-//                     date: date.toLocaleTimeString(),
-//                     price: 1000 + Math.random() * 100
-//                 });
-//             }
-//             break;
-//         case '7D':
-//             // Données par jour
-//             for (let i = 7; i >= 0; i--) {
-//                 const date = new Date(now.getTime() - i * 86400000);
-//                 data.push({
-//                     date: date.toLocaleDateString(),
-//                     price: 1000 + Math.random() * 200
-//                 });
-//             }
-//             break;
-//         case '1M':
-//             // Données par 3 jours
-//             for (let i = 10; i >= 0; i--) {
-//                 const date = new Date(now.getTime() - i * 3 * 86400000);
-//                 data.push({
-//                     date: date.toLocaleDateString(),
-//                     price: 1000 + Math.random() * 300
-//                 });
-//             }
-//             break;
-//         case '1Y':
-//             // Données par mois
-//             for (let i = 12; i >= 0; i--) {
-//                 const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-//                 data.push({
-//                     date: date.toLocaleDateString(),
-//                     price: 1000 + Math.random() * 500
-//                 });
-//             }
-//             break;
-//         case 'ALL':
-//             // Données par année
-//             for (let i = 5; i >= 0; i--) {
-//                 const date = new Date(now.getFullYear() - i, 0, 1);
-//                 data.push({
-//                     date: date.getFullYear().toString(),
-//                     price: 1000 + Math.random() * 1000
-//                 });
-//             }
-//             break;
-//     }
-//     return data;
-// };
-
-const fakeTableData: AssetData[] = [
-    {
-        asset: "Bitcoin",
-        allocation: 45.5,
-        price: 65000,
-        change24h: 2.5,
-        costBasis: 50000,
-        marketValue: 75000,
-        unrealizedReturn: 25,
-        lastDayChange: 1800,
-    },
-    {
-        asset: "Ethereum",
-        allocation: 30.2,
-        price: 3500,
-        change24h: -1.2,
-        costBasis: 3000,
-        marketValue: 45000,
-        unrealizedReturn: 16.7,
-        lastDayChange: -400,
-    },
-    {
-        asset: "Solana",
-        allocation: 24.3,
-        price: 120,
-        change24h: 5.8,
-        costBasis: 90,
-        marketValue: 30000,
-        unrealizedReturn: 33.3,
-        lastDayChange: 600,
-    },
-];
 
 const Dashboard = () => {
     const [timeRange, setTimeRange] = useState<TimeRange>('24H');
     const [data, setData] = useState<PriceEvolution[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [portfolioData, setPortfolioData] = useState<AssetData | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                // Appel API réel
-                const response = await fetch(`http://localhost:8080/history/1`);
+                const response = await fetch(`http://localhost:8080/history/2`);
                 const result = await response.json();
                 
-                // Transformation des données pour le graphique
+            
                 const newData = result.map((item: any) => ({
-                    date: new Date(item.date).toLocaleDateString(), // Formatez la date
-                    price: item.quantity // Utilisez quantity pour le prix
+                    date: new Date(item.date).toLocaleDateString(),
+                    price: item.quantity
                 }));
                 
                 setData(newData);
@@ -152,7 +46,23 @@ const Dashboard = () => {
         };
 
         fetchData();
-    }, [timeRange]); // Recharger les données quand timeRange change
+    }, [timeRange]);
+
+    useEffect(() => {
+        const fetchPortfolioData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/portfolio/2');
+                if (response.ok) {
+                    const data = await response.json();
+                    setPortfolioData(data);
+                }
+            } catch (err) {
+                console.error('Erreur lors de la récupération du portfolio:', err);
+            }
+        };
+
+        fetchPortfolioData();
+    }, []);
 
     const formatPercent = (value: number) => `${value.toFixed(2)}%`;
     const formatCurrency = (value: number) => `${value.toLocaleString()}$`;
@@ -220,35 +130,27 @@ const Dashboard = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assets</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Allocation</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">24h%</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost Basis</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Market Value</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unrealized Return</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Day Change</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variation 24h</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valeur</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variation Valeur 24h</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {fakeTableData.map((asset, index) => (
-                                    <tr key={index}>
-                                        <td className="px-6 py-4 whitespace-nowrap">{asset.asset}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{formatPercent(asset.allocation)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{formatCurrency(asset.price)}</td>
-                                        <td className={`px-6 py-4 whitespace-nowrap ${asset.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {formatPercent(asset.change24h)}
+                                {portfolioData && (
+                                    <tr>
+                                        <td className="px-6 py-4 whitespace-nowrap">{formatPercent(portfolioData.allocation)}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{formatCurrency(portfolioData.price)}</td>
+                                        <td className={`px-6 py-4 whitespace-nowrap ${portfolioData.dailyPrice >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {formatPercent(portfolioData.dailyPrice)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{formatCurrency(asset.costBasis)}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{formatCurrency(asset.marketValue)}</td>
-                                        <td className={`px-6 py-4 whitespace-nowrap ${asset.unrealizedReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {formatPercent(asset.unrealizedReturn)}
-                                        </td>
-                                        <td className={`px-6 py-4 whitespace-nowrap ${asset.lastDayChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {formatCurrency(asset.lastDayChange)}
+                                        <td className="px-6 py-4 whitespace-nowrap">{formatCurrency(portfolioData.value)}</td>
+                                        <td className={`px-6 py-4 whitespace-nowrap ${portfolioData.dailyValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {formatCurrency(portfolioData.dailyValue)}
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
