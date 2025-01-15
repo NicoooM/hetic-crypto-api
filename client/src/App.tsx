@@ -7,7 +7,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import VerifyEmail from "./pages/VerifyEmail";
-import Fiscalite from "./pages/fiscalite";
+import Fiscalite from "./pages/Fiscalite";
+import Graph from "./pages/Graph";
 // import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "pages/Profile";
 
@@ -41,6 +42,14 @@ const App = () => (
           element={
             // <ProtectedRoute>
               <Fiscalite />
+            // </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/graph"
+          element={
+            // <ProtectedRoute>
+              <Graph />
             // </ProtectedRoute>
           }
         />
