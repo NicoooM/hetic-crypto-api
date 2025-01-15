@@ -7,6 +7,7 @@
     "seed": "bun src/utils/seed.ts"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
