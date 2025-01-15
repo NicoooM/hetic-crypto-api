@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 import type { Filters } from "types";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -114,6 +115,8 @@ app.patch("/profile", async (req, res) => {
     res.status(400).json({ error: "Email and password are required" });
   }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   try {
     const user = await prisma.user.update({
       where: {
@@ -122,7 +125,7 @@ app.patch("/profile", async (req, res) => {
       data: {
         name: name || null,
         email: email, // todo: need to re-check if new email
-        password: password, // todo: don't forget to hash it
+        password: hashedPassword,
       },
     });
     res.status(200).json(user);
