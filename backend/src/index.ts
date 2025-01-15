@@ -69,9 +69,9 @@ app.get("/wallets", async (req, res) => {
 });
 
 app.post("/wallet", async (req, res) => {
-  const { address, userId } = req.body;
+  const { address, userId, title } = req.body;
 
-  if (!address || !userId) {
+  if (!address || !userId || !title) {
     res.status(400).json({ error: "Address and userId are required" });
   }
 
@@ -80,6 +80,7 @@ app.post("/wallet", async (req, res) => {
       data: {
         userId: userId,
         address: address,
+        title: title,
       },
     });
     res.status(201).json(wallet);
@@ -88,7 +89,7 @@ app.post("/wallet", async (req, res) => {
   }
 });
 
-app.post("/profile", async (req, res) => {
+app.patch("/profile", async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
