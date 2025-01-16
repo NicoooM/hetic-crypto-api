@@ -30,7 +30,7 @@ export class WalletService {
     try {
       const wallet = await prisma.wallet.create({
         data: {
-          userId: 1,
+          userId: 1, // todo: get user id with auth
           address: address,
           title: title,
         },
@@ -84,7 +84,6 @@ export class WalletService {
 
       return wallet;
     } catch (error) {
-      console.log(error);
       throw new Error(`Wallet creation failed => ${error}`);
     }
   };
