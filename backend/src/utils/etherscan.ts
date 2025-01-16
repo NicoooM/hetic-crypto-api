@@ -194,14 +194,16 @@ const createWalletHistory = async (wallet: string) => {
   return walletHistory;
 };
 
-(async () => {
-  const walletHistory = await createWalletHistory(
-    "0xd0b08671ec13b451823ad9bc5401ce908872e7c5"
-  );
+export { createWalletHistory };
 
-  const totalValue = walletHistory[walletHistory.length - 1]?.value || 0; // Total value at the last day (today)
+// (async () => {
+//   const walletHistory = await createWalletHistory(
+//     "0xd0b08671ec13b451823ad9bc5401ce908872e7c5"
+//   );
 
-  console.log(`Total value for wallet : ${totalValue} Ether`);
-})();
+//   const totalValue = walletHistory[walletHistory.length - 1]?.value || 0; // Total value at the last day (today)
+
+//   console.log(`Total value for wallet : ${totalValue} Ether`);
+// })();
 
 // 0.027524332820616189

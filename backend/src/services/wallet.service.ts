@@ -1,4 +1,5 @@
 import { prisma } from "lib/prisma";
+import { createWalletHistory } from "utils/etherscan";
 
 export class WalletService {
   #prisma = prisma;
@@ -25,7 +26,7 @@ export class WalletService {
   };
 
   // todo: typing
-  create = async (address, title) => {
+  create = async (address: string, title: string) => {
     try {
       const wallet = await prisma.wallet.create({
         data: {
@@ -35,9 +36,55 @@ export class WalletService {
         },
       });
 
+      const walletHistory = await createWalletHistory(address);
+
+      const currency = await prisma.currency.findUnique({
+        where: {
+          symbol: "ETH",
+        },
+      });
+
+      if (!currency) {
+        throw new Error("ETH currency not found");
+      }
+
+      const cryptoHistory = await prisma.currencyHistory.findMany({
+        where: {
+          currencyId: currency.id,
+        },
+      });
+
+      const ethPriceMap = new Map();
+      cryptoHistory.forEach((entry) => {
+        const dateKey = entry.date.toISOString().split("T")[0];
+        ethPriceMap.set(dateKey, entry.price);
+      });
+
+      const enrichedWalletHistory = walletHistory.map((entry) => {
+        const dateKey = entry.date.toISOString().split("T")[0];
+        const ethPrice = ethPriceMap.get(dateKey) || 0;
+
+        const valueInCurrency = entry.value * ethPrice;
+
+        return {
+          ...entry,
+          valueInCurrency,
+        };
+      });
+
+      await prisma.walletHistory.createMany({
+        data: enrichedWalletHistory.map((entry) => ({
+          walletId: wallet.id,
+          date: entry.date,
+          value: entry.valueInCurrency,
+          quantity: entry.value,
+          currencyId: currency.id,
+        })),
+      });
+
       return wallet;
     } catch (error) {
-      throw new Error(`Login failed => ${error}`);
+      throw new Error(`Wallet creation failed => ${error}`);
     }
   };
 
