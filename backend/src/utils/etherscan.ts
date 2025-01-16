@@ -1,5 +1,3 @@
-import BigNumber from "bignumber.js";
-
 interface EtherscanResponse {
   status: string;
   message: string;
@@ -142,19 +140,10 @@ const calculateValuePerDay = (transactions: TransactionData[]) => {
         (valuePerDay[formattedDate] || BigInt(0)) -
         (transactionValue + gasUsed * gasPriceInWei);
     } else {
-      console.log(`Transaction ${index} (Incoming):`);
-      console.log(`Date: ${formattedDate}`);
-
       // Add the transaction value to the daily total
       valuePerDay[formattedDate] =
         (valuePerDay[formattedDate] || BigInt(0)) + transactionValue;
     }
-
-    console.log(
-      `Current value for ${formattedDate}: ${valuePerDay[
-        formattedDate
-      ].toString()} Wei`
-    );
   });
 
   return valuePerDay;
@@ -178,14 +167,23 @@ const createWalletHistory = async (wallet: string) => {
     (a, b) => new Date(a).getTime() - new Date(b).getTime()
   );
 
+  // Get the first transaction date and today's date
+  const firstDate = new Date(sortedDates[0]);
+  const today = new Date(); // Today's date
+
+  // Generate all dates between the first transaction date and today (inclusive)
+  const allDates = [];
+  for (let d = new Date(firstDate); d <= today; d.setDate(d.getDate() + 1)) {
+    allDates.push(new Date(d).toISOString().split("T")[0]);
+  }
+
   let cumulativeValue = BigInt(0);
-  const walletHistory = sortedDates.map((date) => {
-    cumulativeValue = cumulativeValue + valuePerDay[date];
-    console.log(
-      `Date: ${date}, Daily Change: ${valuePerDay[
-        date
-      ].toString()} ETH, New Total: ${cumulativeValue.toString()} ETH`
-    );
+  const walletHistory = allDates.map((date) => {
+    // If there is a transaction on this date, add its value to the cumulative value
+    if (valuePerDay[date]) {
+      cumulativeValue += valuePerDay[date];
+    }
+
     return {
       walletId: wallet,
       date: new Date(date),
@@ -201,7 +199,9 @@ const createWalletHistory = async (wallet: string) => {
     "0xd0b08671ec13b451823ad9bc5401ce908872e7c5"
   );
 
-  const totalValue = walletHistory[walletHistory.length - 1]?.value || 0; // Total value at the last day
+  const totalValue = walletHistory[walletHistory.length - 1]?.value || 0; // Total value at the last day (today)
 
   console.log(`Total value for wallet : ${totalValue} Ether`);
 })();
+
+// 0.027524332820616189
