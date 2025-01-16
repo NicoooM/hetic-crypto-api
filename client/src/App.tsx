@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import { AuthProvider } from "./hooks/useAuth";
+import { AuthProvider } from "./hooks/useAuth";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -9,11 +9,11 @@ import Dashboard from "./pages/Dashboard";
 import VerifyEmail from "./pages/VerifyEmail";
 import Fiscalite from "./pages/Fiscalite";
 import Graph from "./pages/Graph";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "pages/Profile";
 
 const App = () => (
-  // <AuthProvider>
+  <AuthProvider>
     <Router>
       <Navbar />
       <Routes>
@@ -24,16 +24,16 @@ const App = () => (
         <Route
           path="/dashboard"
           element={
-            // <ProtectedRoute>
+            <ProtectedRoute>
               <Dashboard />
-            // </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/profile"
           element={
             // <ProtectedRoute>
-              <Profile />
+            <Profile />
             // </ProtectedRoute>
           }
         />
@@ -41,7 +41,7 @@ const App = () => (
           path="/fiscalite"
           element={
             // <ProtectedRoute>
-              <Fiscalite />
+            <Fiscalite />
             // </ProtectedRoute>
           }
         />
@@ -49,13 +49,13 @@ const App = () => (
           path="/graph"
           element={
             // <ProtectedRoute>
-              <Graph />
+            <Graph />
             // </ProtectedRoute>
           }
         />
       </Routes>
     </Router>
-  // </AuthProvider>
+  </AuthProvider>
 );
 
 export default App;
