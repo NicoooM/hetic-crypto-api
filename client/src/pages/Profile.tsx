@@ -120,7 +120,7 @@ const Profile = () => {
 
     try {
       const response = await API.patch("/profile/password", {
-        password,
+        oldPassword: password,
         newPassword,
       });
 
