@@ -4,11 +4,12 @@ import {
 } from "../constants";
 import jwt from "jsonwebtoken";
 import { prisma } from "lib/prisma";
-import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 export class TokenService {
   #prisma = prisma;
-  #bcrypt = bcrypt;
+  #crypto = crypto;
+
   constructor() {}
 
   generateAccessToken({ id, email }: { id: string; email: string }) {
@@ -28,10 +29,10 @@ export class TokenService {
   }
 
   async saveRefreshToken(token: string, userId: number) {
-    const hashedRefreshToken = await this.#bcrypt.hash(
-      token,
-      BCRYPT_SALT_ROUNDS
-    );
+    const hashedRefreshToken = this.#crypto
+      .createHmac("sha256", process.env.JWT_REFRESH_SECRET!)
+      .update(token)
+      .digest("hex");
 
     return this.#prisma.refreshToken.create({
       data: {
