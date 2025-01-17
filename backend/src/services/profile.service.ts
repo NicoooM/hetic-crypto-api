@@ -23,9 +23,9 @@ export class ProfileService {
   };
 
   // todo: typing
-  edit = async (name, email, password) => {
+  edit = async (name: string, email: string) => {
     try {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await prisma.user.update({
         where: {
@@ -34,7 +34,7 @@ export class ProfileService {
         data: {
           name: name || null,
           email: email, // todo: need to re-check if new email
-          password: hashedPassword,
+          // password: hashedPassword,
         },
       });
 

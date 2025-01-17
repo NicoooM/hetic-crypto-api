@@ -151,6 +151,9 @@ const Dashboard = () => {
   const formatCurrency = (value: number) => `${value.toFixed(2)}€`;
   const timeRanges: TimeRange[] = ["1H", "24H", "7D", "1M", "1Y", "ALL"];
 
+  const minPrice = Math.min(...data.map((item) => item.price)) * 0.8;
+  const maxPrice = Math.max(...data.map((item) => item.price)) * 1.01;
+
   return (
     <div className="m-10 p-8 bg-white border border-gray-200 rounded-lg h-auto">
       <div className="flex items-center justify-between">
@@ -212,7 +215,10 @@ const Dashboard = () => {
               <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tickFormatter={formatDate} />
-                <YAxis tickFormatter={(value) => `${value} €`} />
+                <YAxis
+                  domain={[minPrice, maxPrice]}
+                  tickFormatter={(value) => `${value.toFixed(0)} €`}
+                />
                 <Tooltip formatter={(value) => `${value} €`} />
                 <Legend />
                 <Line

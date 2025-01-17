@@ -20,13 +20,13 @@ export class ProfileController {
 
   edit = async (req: Request, res: Response) => {
     try {
-      const { name, email, password } = req.body;
+      const { name, email } = req.body;
 
-      if (!email || !password) {
-        res.status(400).json({ error: "Email and password are required" });
+      if (!email) {
+        res.status(400).json({ error: "Email is required" });
       }
 
-      const user = await this.#profileService.edit(name, email, password);
+      const user = await this.#profileService.edit(name, email);
       res.status(200).json(user);
     } catch (error) {
       if (
