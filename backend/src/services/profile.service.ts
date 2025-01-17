@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { prisma } from "lib/prisma";
+import { BCRYPT_SALT_ROUNDS } from "../constants";
 import type { RegisterSchema } from "schemas/types";
 
 export class ProfileService {
@@ -25,7 +26,7 @@ export class ProfileService {
 
   edit = async ({ name, email, password }: RegisterSchema) => {
     try {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
       const userData = await prisma.user.findUnique({
         where: {
           id: 1, // todo: get user id with auth
