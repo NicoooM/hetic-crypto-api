@@ -3,6 +3,7 @@
     "baseUrl": "./src",
     "rootDir": "./src",
     "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["./src/types", "./node_modules/@types"],
 
     // Enable latest features
     "lib": ["ESNext", "DOM"],

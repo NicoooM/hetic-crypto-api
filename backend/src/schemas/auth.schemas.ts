@@ -15,4 +15,9 @@ export const loginSchema = z.object({
   password: z.string(),
 });
 
+export const middlewareSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+});
+
 export const refreshTokenSchema = z.string();

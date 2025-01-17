@@ -9,7 +9,7 @@ export class TokenService {
 
   generateAccessToken({ id, email }: { id: string; email: string }) {
     const accessToken = jwt.sign(
-      { userId: id, email },
+      { id, email },
       process.env.JWT_ACCESS_SECRET!,
       { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME }
     );
@@ -18,7 +18,7 @@ export class TokenService {
   }
 
   generateRefreshToken({ id }: { id: string }) {
-    return jwt.sign({ userId: id }, process.env.JWT_REFRESH_SECRET!, {
+    return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET!, {
       expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION_TIME,
     });
   }

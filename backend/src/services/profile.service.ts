@@ -1,16 +1,26 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { prisma } from "lib/prisma";
-import { BCRYPT_SALT_ROUNDS } from "../constants";
+import {
+  BCRYPT_SALT_ROUNDS,
+  JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+} from "../constants";
 import type { RegisterSchema } from "schemas/types";
+import { EmailService } from "./email.service";
 
 export class ProfileService {
   #prisma = prisma;
+  #emailService: EmailService;
 
-  get = async () => {
+  constructor() {
+    this.#emailService = new EmailService();
+  }
+
+  get = async (id: number) => {
     try {
       const profile = await this.#prisma.user.findUnique({
         where: {
-          id: 1, // todo: get user id with auth
+          id: id,
         },
         select: {
           name: true,
@@ -24,31 +34,48 @@ export class ProfileService {
     }
   };
 
-  edit = async ({ name, email, password }: RegisterSchema) => {
+  edit = async ({
+    name,
+    email,
+    password,
+    id,
+  }: RegisterSchema & { id: number }) => {
     try {
       const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
       const userData = await prisma.user.findUnique({
         where: {
-          id: 1, // todo: get user id with auth
+          id: id,
         },
         select: {
           email: true,
         },
       });
-      const isNewEmail = userData?.email === email;
+      const isSameEmail = userData?.email === email;
 
       const user = await prisma.user.update({
         where: {
-          id: 1, // todo: get user id with auth
+          id: id,
         },
         data: {
           name: name || null,
           email: email,
           password: hashedPassword,
-          isEmailVerified: isNewEmail,
+          isEmailVerified: isSameEmail,
         },
       });
 
+      const verificationToken = jwt.sign(
+        { email },
+        process.env.JWT_ACCESS_SECRET!,
+        {
+          expiresIn: JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+        }
+      );
+      !isSameEmail &&
+        (await this.#emailService.sendVerificationEmail(
+          email,
+          verificationToken
+        ));
       return user;
     } catch (error) {
       throw new Error(`Login failed => ${error}`);

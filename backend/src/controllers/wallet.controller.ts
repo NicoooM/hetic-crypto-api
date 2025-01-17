@@ -13,16 +13,19 @@ export class WalletController {
 
   delete = async (req: Request, res: Response) => {
     try {
-      const walletId = parseInt(req.params.id, 10);
+      if (req.user) {
+        const walletId = parseInt(req.params.id, 10);
+        const userId = parseInt(req.user.id);
 
-      if (isNaN(walletId)) {
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ error: "Invalid wallet id" });
+        if (isNaN(walletId)) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Invalid wallet id" });
+        }
+
+        await this.#walletService.delete(walletId, userId);
+        res.status(StatusCodes.NO_CONTENT).send();
       }
-
-      await this.#walletService.delete(walletId);
-      res.status(StatusCodes.NO_CONTENT).send();
     } catch (error: any) {
       if (
         error instanceof PrismaClientKnownRequestError &&
@@ -39,17 +42,23 @@ export class WalletController {
 
   create = async (req: Request, res: Response) => {
     try {
-      const { address, title } = req.body;
-      const parsedData = walletSchema.parse({ address, title });
+      if (req.user) {
+        const { address, title } = req.body;
+        const parsedData = walletSchema.parse({ address, title });
+        const parsedId = parseInt(req.user.id);
 
-      if (!address || !title) {
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ error: "Address and title are required" });
+        if (!address || !title) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Address and title are required" });
+        }
+
+        const wallet = await this.#walletService.create({
+          ...parsedData,
+          id: parsedId,
+        });
+        res.status(StatusCodes.CREATED).json(wallet);
       }
-
-      const wallet = await this.#walletService.create(parsedData);
-      res.status(StatusCodes.CREATED).json(wallet);
     } catch (error: any) {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -57,10 +66,13 @@ export class WalletController {
     }
   };
 
-  all = async (_: Request, res: Response) => {
+  all = async (req: Request, res: Response) => {
     try {
-      const wallets = await this.#walletService.all();
-      res.json(wallets);
+      if (req.user) {
+        const parsedId = parseInt(req.user.id);
+        const wallets = await this.#walletService.all(parsedId);
+        res.json(wallets);
+      }
     } catch (error: any) {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)

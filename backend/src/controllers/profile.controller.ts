@@ -11,10 +11,13 @@ export class ProfileController {
     this.#profileService = new ProfileService();
   }
 
-  get = async (_: Request, res: Response) => {
+  get = async (req: Request, res: Response) => {
     try {
-      const profile = await this.#profileService.get();
-      res.json(profile);
+      if (req.user) {
+        const parsedId = parseInt(req.user.id);
+        const profile = await this.#profileService.get(parsedId);
+        res.json(profile);
+      }
     } catch (error: any) {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -24,17 +27,23 @@ export class ProfileController {
 
   edit = async (req: Request, res: Response) => {
     try {
-      const { name, email, password } = req.body;
-      const parsedData = registerSchema.parse({ name, email, password });
+      if (req.user) {
+        const { name, email, password } = req.body;
+        const parsedData = registerSchema.parse({ name, email, password });
+        const parsedId = parseInt(req.user.id);
 
-      if (!email || !password) {
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ error: "Email and password are required" });
+        if (!email || !password) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Email and password are required" });
+        }
+
+        const user = await this.#profileService.edit({
+          ...parsedData,
+          id: parsedId,
+        });
+        res.status(StatusCodes.OK).json(user);
       }
-
-      const user = await this.#profileService.edit(parsedData);
-      res.status(StatusCodes.OK).json(user);
     } catch (error: any) {
       if (
         error instanceof PrismaClientKnownRequestError &&

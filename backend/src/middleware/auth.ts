@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
-
-type DecodedToken = string | jwt.JwtPayload;
+import { middlewareSchema } from "schemas/auth.schemas";
 
 export function verifyAccessToken(
   req: Request,
@@ -20,7 +19,8 @@ export function verifyAccessToken(
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-    (req as Request & { user: DecodedToken }).user = decoded;
+    const parsedData = middlewareSchema.parse(decoded);
+    req.user = parsedData;
     next();
   } catch (err) {
     res.status(StatusCodes.FORBIDDEN).json({ message: "Invalid token" });

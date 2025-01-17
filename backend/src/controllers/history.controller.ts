@@ -12,34 +12,37 @@ export class HistoryController {
 
   get = async (req: Request, res: Response) => {
     try {
-      const walletId = parseInt(req.params.id, 10);
-      const { startDate } = req.query;
+      if (req.user) {
+        const walletId = parseInt(req.params.id, 10);
+        const { startDate } = req.query;
 
-      if (isNaN(walletId)) {
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ error: "Invalid wallet id" });
-      }
+        if (isNaN(walletId)) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Invalid wallet id" });
+        }
 
-      const parsedData = filtersSchema.parse({
-        walletId,
-        wallet: {
-          user: {
-            id: 1, // todo: get user id with auth
+        const parsedId = parseInt(req.user.id);
+        const parsedData = filtersSchema.parse({
+          walletId,
+          wallet: {
+            user: {
+              id: parsedId,
+            },
           },
-        },
-        date: { gte: new Date(startDate as string) },
-      });
+          ...(startDate && { date: { gte: new Date(startDate as string) } }),
+        });
 
-      const history = await this.#historyService.get(parsedData);
+        const history = await this.#historyService.get(parsedData);
 
-      if (history.length === 0) {
-        res
-          .status(StatusCodes.NOT_FOUND)
-          .json({ error: "Wallet history not found" });
+        if (history.length === 0) {
+          res
+            .status(StatusCodes.NOT_FOUND)
+            .json({ error: "Wallet history not found" });
+        }
+
+        res.json(history);
       }
-
-      res.json(history);
     } catch (error: any) {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
