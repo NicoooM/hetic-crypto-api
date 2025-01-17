@@ -1,13 +1,12 @@
 import { prisma } from "lib/prisma";
+import type { Filters } from "schemas/types";
 
 export class HistoryService {
   #prisma = prisma;
 
-  // todo: typing
-  get = async (walletId: number, startDate) => {
+  get = async (walletId: number, startDate: string) => {
     try {
-      // todo: typing
-      const filters: any = {
+      const filters: Filters = {
         walletId: walletId,
         wallet: {
           user: {

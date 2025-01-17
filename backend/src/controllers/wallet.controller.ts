@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { WalletService } from "services/wallet.service";
+import { walletSchema } from "schemas/wallet.schemas";
 
 export class WalletController {
   #walletService: WalletService;
@@ -34,12 +35,13 @@ export class WalletController {
   create = async (req: Request, res: Response) => {
     try {
       const { address, title } = req.body;
+      const parsedData = walletSchema.parse({ address, title });
 
       if (!address || !title) {
         res.status(400).json({ error: "Address and title are required" });
       }
 
-      const wallet = await this.#walletService.create(address, title);
+      const wallet = await this.#walletService.create(parsedData);
       res.status(201).json(wallet);
     } catch {
       res.status(500).json({ error: "Internal server error" });

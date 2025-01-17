@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { prisma } from "lib/prisma";
+import type { RegisterSchema } from "schemas/types";
 
 export class ProfileService {
   #prisma = prisma;
@@ -22,8 +23,7 @@ export class ProfileService {
     }
   };
 
-  // todo: typing
-  edit = async (name, email, password) => {
+  edit = async ({ name, email, password }: RegisterSchema) => {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
 

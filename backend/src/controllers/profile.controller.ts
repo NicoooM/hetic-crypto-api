@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { ProfileService } from "services/profile.service";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { registerSchema } from "schemas/auth.schemas";
 
 export class ProfileController {
   #profileService: ProfileService;
@@ -21,12 +22,13 @@ export class ProfileController {
   edit = async (req: Request, res: Response) => {
     try {
       const { name, email, password } = req.body;
+      const parsedData = registerSchema.parse({ name, email, password });
 
       if (!email || !password) {
         res.status(400).json({ error: "Email and password are required" });
       }
 
-      const user = await this.#profileService.edit(name, email, password);
+      const user = await this.#profileService.edit(parsedData);
       res.status(200).json(user);
     } catch (error) {
       if (

@@ -1,4 +1,5 @@
 import { prisma } from "lib/prisma";
+import type { WalletSchema } from "schemas/types";
 import { createWalletHistory } from "utils/etherscan";
 
 export class WalletService {
@@ -25,8 +26,7 @@ export class WalletService {
     }
   };
 
-  // todo: typing
-  create = async (address: string, title: string) => {
+  create = async ({ address, title }: WalletSchema) => {
     try {
       const wallet = await prisma.wallet.create({
         data: {
