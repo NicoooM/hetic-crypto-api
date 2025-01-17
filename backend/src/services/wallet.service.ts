@@ -7,18 +7,18 @@ export class WalletService {
 
   delete = async (walletId: number, id: number) => {
     try {
+      await this.#prisma.wallet.delete({
+        where: {
+          id: walletId,
+          userId: id,
+        },
+      });
       await this.#prisma.walletHistory.deleteMany({
         where: {
           walletId: walletId,
           wallet: {
             userId: id,
           },
-        },
-      });
-      await this.#prisma.wallet.delete({
-        where: {
-          id: walletId,
-          userId: id,
         },
       });
     } catch (error) {
