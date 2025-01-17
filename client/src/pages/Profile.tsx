@@ -129,11 +129,21 @@ const Profile = () => {
         setPassword("");
         setNewPassword("");
         setNewPasswordConfirmation("");
-      } else {
-        throw new Error("Erreur lors de la mise à jour du mot de passe");
       }
-    } catch (err) {
-      setError("Erreur lors de la mise à jour du mot de passe");
+    } catch (err: any) {
+      let errorMessage = "Password update failed.";
+
+      try {
+        JSON.parse(err.response?.data?.message);
+
+        errorMessage =
+          JSON.parse(err.response?.data?.message)[0]?.message ||
+          "Password update failed.";
+      } catch (e) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+
+      setError(errorMessage);
     }
   };
 
