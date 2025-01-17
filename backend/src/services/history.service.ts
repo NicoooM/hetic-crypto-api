@@ -1,25 +1,11 @@
 import { prisma } from "lib/prisma";
+import type { FiltersSchema } from "schemas/types";
 
 export class HistoryService {
   #prisma = prisma;
 
-  // todo: typing
-  get = async (walletId: number, startDate) => {
+  get = async (filters: FiltersSchema) => {
     try {
-      // todo: typing
-      const filters: any = {
-        walletId: walletId,
-        wallet: {
-          user: {
-            id: 1, // todo: get user id with auth
-          },
-        },
-      };
-
-      if (startDate) {
-        filters.date = { gte: new Date(startDate as string) };
-      }
-
       const history = await this.#prisma.walletHistory.findMany({
         where: filters,
       });

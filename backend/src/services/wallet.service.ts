@@ -1,23 +1,24 @@
 import { prisma } from "lib/prisma";
+import type { WalletSchema } from "schemas/types";
 import { createWalletHistory } from "utils/etherscan";
 
 export class WalletService {
   #prisma = prisma;
 
-  delete = async (walletId: number) => {
+  delete = async (walletId: number, id: number) => {
     try {
       await this.#prisma.walletHistory.deleteMany({
         where: {
           walletId: walletId,
           wallet: {
-            userId: 1, // todo: get user id with auth
+            userId: id,
           },
         },
       });
       await this.#prisma.wallet.delete({
         where: {
           id: walletId,
-          userId: 1, // todo: get user id with auth
+          userId: id,
         },
       });
     } catch (error) {
@@ -25,17 +26,8 @@ export class WalletService {
     }
   };
 
-  // todo: typing
-  create = async (address: string, title: string) => {
+  create = async ({ address, title, id }: WalletSchema & { id: number }) => {
     try {
-      const wallet = await prisma.wallet.create({
-        data: {
-          userId: 1, // todo: get user id with auth
-          address: address,
-          title: title,
-        },
-      });
-
       const walletHistory = await createWalletHistory(address);
 
       const currency = await prisma.currency.findUnique({
@@ -72,6 +64,14 @@ export class WalletService {
         };
       });
 
+      const wallet = await prisma.wallet.create({
+        data: {
+          userId: id,
+          address: address,
+          title: title,
+        },
+      });
+
       await prisma.walletHistory.createMany({
         data: enrichedWalletHistory.map((entry) => ({
           walletId: wallet.id,
@@ -88,11 +88,11 @@ export class WalletService {
     }
   };
 
-  all = async () => {
+  all = async (id: number) => {
     try {
       const wallets = await this.#prisma.wallet.findMany({
         where: {
-          userId: 1, // todo: get user id with auth
+          userId: id,
         },
       });
       return wallets;

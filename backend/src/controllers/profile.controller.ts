@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
-import { ProfileService } from "services/profile.service";
+import { StatusCodes } from "http-status-codes";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { ProfileService } from "services/profile.service";
+import { profileSchema } from "schemas/profile.schemas";
 
 export class ProfileController {
   #profileService: ProfileService;
@@ -11,31 +13,49 @@ export class ProfileController {
 
   get = async (req: Request, res: Response) => {
     try {
-      const profile = await this.#profileService.get();
-      res.json(profile);
-    } catch {
-      res.status(500).json({ error: "Internal server error" });
+      if (req.user) {
+        const parsedId = parseInt(req.user.id);
+        const profile = await this.#profileService.get(parsedId);
+        res.json(profile);
+      }
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
     }
   };
 
   edit = async (req: Request, res: Response) => {
     try {
-      const { name, email } = req.body;
+      if (req.user) {
+        const { name, email } = req.body;
+        const parsedData = profileSchema.parse({ name, email });
+        const parsedId = parseInt(req.user.id);
 
-      if (!email) {
-        res.status(400).json({ error: "Email is required" });
+        if (!email) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Email is required" });
+        }
+
+        const user = await this.#profileService.edit({
+          ...parsedData,
+          id: parsedId,
+        });
+        res.status(StatusCodes.OK).json(user);
       }
-
-      const user = await this.#profileService.edit(name, email);
-      res.status(200).json(user);
-    } catch (error) {
+    } catch (error: any) {
       if (
         error instanceof PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        res.status(400).json({ error: "Account edition failed" });
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ error: "Account edition failed" });
       } else {
-        res.status(500).json({ error: "Internal server error" });
+        res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json({ message: error.message });
       }
     }
   };

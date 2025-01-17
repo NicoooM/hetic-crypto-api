@@ -1,9 +1,9 @@
 import express from "express";
-import { prisma } from "lib/prisma";
-import { router } from "routes";
-import { verifyEnv } from "utils/verify-env";
-import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import { verifyEnv } from "utils/verify-env";
+import { router } from "routes";
 
 const app = express();
 const port = process.env.PORT;
@@ -15,12 +15,9 @@ const corsOptions = {
 
 app.use(cookieParser());
 app.use(cors(corsOptions));
+app.use(helmet());
 app.use(express.json());
 app.use("/api/v1", router);
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
 app.listen(port, () => {
   verifyEnv();

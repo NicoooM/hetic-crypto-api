@@ -121,7 +121,7 @@ const getAllInternalTransactions = async (wallet: string) => {
 const calculateValuePerDay = (transactions: TransactionData[]) => {
   const valuePerDay: Record<string, bigint> = {};
 
-  transactions.forEach((transaction, index) => {
+  transactions.forEach((transaction) => {
     // Convert timestamp to a Date object
     const date = new Date(Number(transaction.timeStamp) * 1000);
 
