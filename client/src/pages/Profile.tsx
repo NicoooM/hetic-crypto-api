@@ -122,7 +122,6 @@ const Profile = () => {
       const response = await API.patch("/profile/password", {
         password,
         newPassword,
-        newPassWordConfirmation,
       });
 
       if (response.status === 200) {
