@@ -16,7 +16,10 @@ const Profile = () => {
   const [wallets, setWallets] = useState<Wallet[]>([]); // Ajout de 'title' au type
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
-  //   const [password, setPassword] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [newPassWordConfirmation, setNewPasswordConfirmation] =
+    useState<string>("");
 
   useEffect(() => {
     fetchWallets();
@@ -108,6 +111,33 @@ const Profile = () => {
     }
   };
 
+  const updatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== newPassWordConfirmation) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      const response = await API.patch("/profile/password", {
+        password,
+        newPassword,
+        newPassWordConfirmation,
+      });
+
+      if (response.status === 200) {
+        setError("Mot de passe mis à jour avec succès!");
+        setPassword("");
+        setNewPassword("");
+        setNewPasswordConfirmation("");
+      } else {
+        throw new Error("Erreur lors de la mise à jour du mot de passe");
+      }
+    } catch (err) {
+      setError("Erreur lors de la mise à jour du mot de passe");
+    }
+  };
+
   return (
     <div className="max-w-screen-md my-10 mx-auto p-4 space-y-4 bg-white border border-gray-200 rounded-lg">
       {error && (
@@ -140,11 +170,47 @@ const Profile = () => {
               className="text-sm font-mono p-2 bg-gray-100 rounded w-full"
             />
           </div>
+
           <button
             type="submit"
             className="w-full bg-primary text-white p-2 mt-4 rounded font-mono"
           >
             Update the informations
+          </button>
+        </form>
+      </div>
+      <div className="mt-8">
+        <h2 className="text-xl font-bold font-mono mb-4">Password</h2>
+        <form onSubmit={updatePassword}>
+          <div className="flex flex-row justify-between gap-2">
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="text-sm font-mono p-2 bg-gray-100 rounded w-full"
+            />
+            <input
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="text-sm font-mono p-2 bg-gray-100 rounded w-full"
+            />
+            <input
+              type="password"
+              placeholder="New password confirmation"
+              value={newPassWordConfirmation}
+              onChange={(e) => setNewPasswordConfirmation(e.target.value)}
+              className="text-sm font-mono p-2 bg-gray-100 rounded w-full"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-primary text-white p-2 mt-4 rounded font-mono"
+          >
+            Update Password
           </button>
         </form>
       </div>
