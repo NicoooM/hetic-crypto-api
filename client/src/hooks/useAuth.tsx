@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import API from "services/api";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: boolean;
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const user = localStorage.getItem("token");
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
     localStorage.removeItem("token");
     setUser(false);
+    navigate("/login");
   };
 
   return (

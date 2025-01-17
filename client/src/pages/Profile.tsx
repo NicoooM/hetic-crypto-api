@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import API from "services/api";
+import { useAuth } from "hooks/useAuth";
 
 interface Wallet {
   userId: number;
@@ -20,6 +21,8 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState<string>("");
   const [newPassWordConfirmation, setNewPasswordConfirmation] =
     useState<string>("");
+
+  const { logout } = useAuth();
 
   useEffect(() => {
     fetchWallets();
@@ -71,10 +74,7 @@ const Profile = () => {
 
   const deleteWallet = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/wallet/${id}`, {
-        method: "DELETE",
-      });
-
+      const response = await API.delete(`/wallet/${id}`);
       if (response.status === 200) {
         setError("Wallet supprimé avec succès!");
         await fetchWallets();
@@ -129,6 +129,7 @@ const Profile = () => {
         setPassword("");
         setNewPassword("");
         setNewPasswordConfirmation("");
+        logout();
       }
     } catch (err: any) {
       let errorMessage = "Password update failed.";
