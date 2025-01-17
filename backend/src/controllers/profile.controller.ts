@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import { ProfileService } from "services/profile.service";
+import { StatusCodes } from "http-status-codes";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { ProfileService } from "services/profile.service";
 import { registerSchema } from "schemas/auth.schemas";
 
 export class ProfileController {
@@ -14,8 +15,10 @@ export class ProfileController {
     try {
       const profile = await this.#profileService.get();
       res.json(profile);
-    } catch {
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
     }
   };
 
@@ -25,19 +28,25 @@ export class ProfileController {
       const parsedData = registerSchema.parse({ name, email, password });
 
       if (!email || !password) {
-        res.status(400).json({ error: "Email and password are required" });
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ error: "Email and password are required" });
       }
 
       const user = await this.#profileService.edit(parsedData);
-      res.status(200).json(user);
-    } catch (error) {
+      res.status(StatusCodes.OK).json(user);
+    } catch (error: any) {
       if (
         error instanceof PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        res.status(400).json({ error: "Account edition failed" });
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ error: "Account edition failed" });
       } else {
-        res.status(500).json({ error: "Internal server error" });
+        res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json({ message: error.message });
       }
     }
   };

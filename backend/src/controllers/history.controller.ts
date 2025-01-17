@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 import { HistoryService } from "services/history.service";
 
 export class HistoryController {
@@ -14,18 +15,24 @@ export class HistoryController {
       const { startDate }: { startDate?: string } = req.query;
 
       if (isNaN(walletId)) {
-        res.status(400).json({ error: "Invalid wallet id" });
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ error: "Invalid wallet id" });
       }
 
       const history = await this.#historyService.get(walletId, startDate || "");
 
       if (history.length === 0) {
-        res.status(404).json({ error: "Wallet history not found" });
+        res
+          .status(StatusCodes.NOT_FOUND)
+          .json({ error: "Wallet history not found" });
       }
 
       res.json(history);
-    } catch {
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
     }
   };
 }

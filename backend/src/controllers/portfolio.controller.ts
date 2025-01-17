@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 import { PortfolioService } from "services/portfolio.service";
 
 export class PortfolioController {
@@ -22,8 +23,10 @@ export class PortfolioController {
         value: value,
         dailyValue: dailyValue,
       });
-    } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
     }
   };
 }

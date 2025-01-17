@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { WalletService } from "services/wallet.service";
 import { walletSchema } from "schemas/wallet.schemas";
@@ -15,19 +16,23 @@ export class WalletController {
       const walletId = parseInt(req.params.id, 10);
 
       if (isNaN(walletId)) {
-        res.status(400).json({ error: "Invalid wallet id" });
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ error: "Invalid wallet id" });
       }
 
       await this.#walletService.delete(walletId);
-      res.status(204).send();
-    } catch (error) {
+      res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error: any) {
       if (
         error instanceof PrismaClientKnownRequestError &&
         error.code === "P2025"
       ) {
-        res.status(404).json({ error: "Wallet not found" });
+        res.status(StatusCodes.NOT_FOUND).json({ error: "Wallet not found" });
       } else {
-        res.status(500).json({ error: "Internal server error" });
+        res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json({ message: error.message });
       }
     }
   };
@@ -38,22 +43,28 @@ export class WalletController {
       const parsedData = walletSchema.parse({ address, title });
 
       if (!address || !title) {
-        res.status(400).json({ error: "Address and title are required" });
+        res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ error: "Address and title are required" });
       }
 
       const wallet = await this.#walletService.create(parsedData);
-      res.status(201).json(wallet);
-    } catch {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(StatusCodes.CREATED).json(wallet);
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
     }
   };
 
-  all = async (req: Request, res: Response) => {
+  all = async (_: Request, res: Response) => {
     try {
       const wallets = await this.#walletService.all();
       res.json(wallets);
-    } catch {
-      res.status(500).json({ error: "Internal server error" });
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
     }
   };
 }
