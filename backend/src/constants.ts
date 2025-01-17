@@ -22,3 +22,7 @@ export const REQUIRED_ENV_VARS = [
 ] as const;
 
 export const BCRYPT_SALT_ROUNDS = 10;
+
+export const LOGIN_LIMITER_MAX_REQUESTS = 5;
+export const REGISTER_LIMITER_MAX_REQUESTS = 3;
+export const AUTH_LIMITER_WINDOW_MS = 15 * 60 * 1000;
