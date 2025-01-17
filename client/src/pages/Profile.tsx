@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import API from "services/api";
 import { useAuth } from "hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface Wallet {
   userId: number;
@@ -23,6 +24,7 @@ const Profile = () => {
     useState<string>("");
 
   const { logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchWallets();
@@ -130,6 +132,7 @@ const Profile = () => {
         setNewPassword("");
         setNewPasswordConfirmation("");
         logout();
+        navigate("/login");
       }
     } catch (err: any) {
       let errorMessage = "Password update failed.";
