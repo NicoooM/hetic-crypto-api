@@ -26,6 +26,15 @@ export class ProfileService {
   edit = async ({ name, email, password }: RegisterSchema) => {
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
+      const userData = await prisma.user.findUnique({
+        where: {
+          id: 1, // todo: get user id with auth
+        },
+        select: {
+          email: true,
+        },
+      });
+      const isNewEmail = userData?.email === email;
 
       const user = await prisma.user.update({
         where: {
@@ -33,8 +42,9 @@ export class ProfileService {
         },
         data: {
           name: name || null,
-          email: email, // todo: need to re-check if new email
+          email: email,
           password: hashedPassword,
+          isEmailVerified: isNewEmail,
         },
       });
 
