@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { filtersSchema } from "schemas/filters.schemas";
 import { HistoryService } from "services/history.service";
 
 export class HistoryController {
@@ -12,7 +13,7 @@ export class HistoryController {
   get = async (req: Request, res: Response) => {
     try {
       const walletId = parseInt(req.params.id, 10);
-      const { startDate }: { startDate?: string } = req.query;
+      const { startDate } = req.query;
 
       if (isNaN(walletId)) {
         res
@@ -20,7 +21,17 @@ export class HistoryController {
           .json({ error: "Invalid wallet id" });
       }
 
-      const history = await this.#historyService.get(walletId, startDate || "");
+      const parsedData = filtersSchema.parse({
+        walletId,
+        wallet: {
+          user: {
+            id: 1, // todo: get user id with auth
+          },
+        },
+        date: { gte: new Date(startDate as string) },
+      });
+
+      const history = await this.#historyService.get(parsedData);
 
       if (history.length === 0) {
         res
