@@ -28,14 +28,14 @@ export class ProfileController {
   edit = async (req: Request, res: Response) => {
     try {
       if (req.user) {
-        const { name, email, password } = req.body;
-        const parsedData = registerSchema.parse({ name, email, password });
+        const { name, email } = req.body;
+        const parsedData = registerSchema.parse({ name, email });
         const parsedId = parseInt(req.user.id);
 
-        if (!email || !password) {
+        if (!email) {
           res
             .status(StatusCodes.BAD_REQUEST)
-            .json({ error: "Email and password are required" });
+            .json({ error: "Email is required" });
         }
 
         const user = await this.#profileService.edit({

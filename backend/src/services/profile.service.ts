@@ -1,10 +1,6 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "lib/prisma";
-import {
-  BCRYPT_SALT_ROUNDS,
-  JWT_REFRESH_TOKEN_EXPIRATION_TIME,
-} from "../constants";
+import { JWT_REFRESH_TOKEN_EXPIRATION_TIME } from "../constants";
 import type { RegisterSchema } from "schemas/types";
 import { EmailService } from "./email.service";
 
@@ -34,14 +30,8 @@ export class ProfileService {
     }
   };
 
-  edit = async ({
-    name,
-    email,
-    password,
-    id,
-  }: RegisterSchema & { id: number }) => {
+  edit = async ({ name, email, id }: RegisterSchema & { id: number }) => {
     try {
-      const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
       const userData = await prisma.user.findUnique({
         where: {
           id: id,
@@ -59,7 +49,6 @@ export class ProfileService {
         data: {
           name: name || null,
           email: email,
-          password: hashedPassword,
           isEmailVerified: isSameEmail,
         },
       });

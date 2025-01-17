@@ -33,12 +33,17 @@ const Register = () => {
       navigate("/login");
     } catch (error: any) {
       let errorMessage = "Registration failed.";
+      console.log("odkzokok");
+
       try {
         JSON.parse(error.response?.data?.message);
+
         errorMessage =
-          JSON.parse(error.response?.data?.message)[1]?.message || errorMessage;
+          JSON.parse(error.response?.data?.message)[0]?.message ||
+          "Registration failed.";
       } catch (e) {
         errorMessage = error.response?.data?.message || errorMessage;
+        console.log(e, "apanyan");
       }
 
       setErrors(errorMessage);
