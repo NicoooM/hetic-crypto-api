@@ -1,10 +1,15 @@
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { prisma } from "lib/prisma";
-import { JWT_REFRESH_TOKEN_EXPIRATION_TIME } from "../constants";
-import type { ProfileSchema } from "schemas/types";
+import {
+  BCRYPT_SALT_ROUNDS,
+  JWT_REFRESH_TOKEN_EXPIRATION_TIME,
+} from "../constants";
+import type { PasswordSchema, ProfileSchema } from "schemas/types";
 import { EmailService } from "./email.service";
 
 export class ProfileService {
+  #bcrypt = bcrypt;
   #prisma = prisma;
   #emailService: EmailService;
 
@@ -66,6 +71,48 @@ export class ProfileService {
           verificationToken
         ));
       return user;
+    } catch (error) {
+      throw new Error(`Login failed => ${error}`);
+    }
+  };
+
+  resetPassword = async ({
+    oldPassword,
+    newPassword,
+    id,
+  }: PasswordSchema & { id: number }) => {
+    try {
+      const oldHashedPassword = await this.#bcrypt.hash(
+        oldPassword,
+        BCRYPT_SALT_ROUNDS
+      );
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+        select: {
+          password: true,
+        },
+      });
+
+      if (user?.password === oldHashedPassword) {
+        throw new Error("Old password is incorrect");
+      }
+
+      const newHashedPassword = await this.#bcrypt.hash(
+        newPassword,
+        BCRYPT_SALT_ROUNDS
+      );
+
+      await prisma.user.update({
+        where: {
+          id: id,
+        },
+        data: {
+          password: newHashedPassword,
+        },
+      });
     } catch (error) {
       throw new Error(`Login failed => ${error}`);
     }
