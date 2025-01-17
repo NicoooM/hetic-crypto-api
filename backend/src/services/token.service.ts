@@ -5,6 +5,7 @@ import {
 import jwt from "jsonwebtoken";
 import { prisma } from "lib/prisma";
 import crypto from "crypto";
+import { hashToken } from "utils/hash-refresh-token";
 
 export class TokenService {
   #prisma = prisma;
@@ -29,11 +30,11 @@ export class TokenService {
   }
 
   async saveRefreshToken(token: string, userId: number) {
-    const hashedRefreshToken = this.#crypto
-      .createHmac("sha256", process.env.JWT_REFRESH_SECRET!)
-      .update(token)
-      .digest("hex");
-
+    const hashedRefreshToken = hashToken(
+      token,
+      process.env.JWT_REFRESH_SECRET!
+    );
+    
     return this.#prisma.refreshToken.create({
       data: {
         token: hashedRefreshToken,
