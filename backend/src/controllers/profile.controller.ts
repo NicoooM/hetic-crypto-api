@@ -75,6 +75,7 @@ export class ProfileController {
             .status(StatusCodes.BAD_REQUEST)
             .json({ error: "New password must be different" });
         }
+
         await this.#profileService.resetPassword({
           oldPassword,
           newPassword,
