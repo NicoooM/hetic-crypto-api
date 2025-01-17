@@ -32,7 +32,7 @@ export class AuthController {
         .cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production" ? true : false,
-          sameSite: "strict",
+          sameSite: "lax",
           maxAge: JWT_REFRESH_TOKEN_EXPIRATION_TIME,
         })
         .json({ accessToken });

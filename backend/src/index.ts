@@ -2,6 +2,7 @@ import express from "express";
 import { prisma } from "lib/prisma";
 import { router } from "routes";
 import { verifyEnv } from "utils/verify-env";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 
 const app = express();
@@ -12,6 +13,7 @@ const corsOptions = {
   credentials: true,
 };
 
+app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use("/api/v1", router);

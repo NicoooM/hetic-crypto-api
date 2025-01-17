@@ -32,7 +32,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(true);
   };
   const logout = async () => {
-    await API.post("/auth/logout");
+    await API.post(
+      "/auth/logout",
+      {},
+      {
+        withCredentials: true,
+      }
+    );
     localStorage.removeItem("token");
     setUser(false);
   };
