@@ -6,6 +6,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
+    name: "",
     password: "",
     confirmPassword: "",
   });
@@ -26,12 +27,21 @@ const Register = () => {
     }
 
     try {
-      const { email, password } = formData;
+      const { email, password, name } = formData;
 
-      await API.post("/auth/register", { email, password });
+      await API.post("/auth/register", { email, password, name });
       navigate("/login");
     } catch (error: any) {
-      setErrors(error.response?.data?.message || "Registration failed.");
+      let errorMessage = "Registration failed.";
+      try {
+        JSON.parse(error.response?.data?.message);
+        errorMessage =
+          JSON.parse(error.response?.data?.message)[1]?.message || errorMessage;
+      } catch (e) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      }
+
+      setErrors(errorMessage);
     }
   };
 
@@ -57,6 +67,23 @@ const Register = () => {
               required
               className="w-full p-2 border rounded"
               placeholder="example@email.com"
+            />
+          </div>
+
+          {/* UserName */}
+          <div>
+            <label htmlFor="name" className="block font-medium mb-1">
+              Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full p-2 border rounded"
+              placeholder="John Doe"
             />
           </div>
 
