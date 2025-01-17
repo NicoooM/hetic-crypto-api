@@ -6,5 +6,6 @@ const profileController = new ProfileController();
 
 profileRouter.get("/", profileController.get);
 profileRouter.patch("/", profileController.edit);
+profileRouter.patch("/password", profileController.resetPassword);
 
 export { profileRouter };

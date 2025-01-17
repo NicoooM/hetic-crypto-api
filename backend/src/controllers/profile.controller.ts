@@ -59,4 +59,33 @@ export class ProfileController {
       }
     }
   };
+
+  resetPassword = async (req: Request, res: Response) => {
+    try {
+      if (req.user) {
+        const parsedId = parseInt(req.user.id);
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Old password and new password are required" });
+        }
+        if (oldPassword === newPassword) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "New password must be different" });
+        }
+        await this.#profileService.resetPassword({
+          oldPassword,
+          newPassword,
+          id: parsedId,
+        });
+        res.status(StatusCodes.OK).json({ message: "Password changed" });
+      }
+    } catch (error: any) {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: error.message });
+    }
+  };
 }
