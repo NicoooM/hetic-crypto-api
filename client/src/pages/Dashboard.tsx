@@ -121,6 +121,14 @@ const Dashboard = () => {
           price: item.value.toFixed(2),
         }));
 
+        if (portfolioData) {
+          newData.pop(); // Remove the last value
+          newData.push({
+            date: new Date().toLocaleDateString(),
+            price: portfolioData.value.toFixed(2),
+          });
+        }
+
         setData(newData);
         setError(null);
       } catch (err) {
@@ -131,7 +139,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [timeRange, selectedWalletId]);
+  }, [timeRange, selectedWalletId, portfolioData]);
 
   useEffect(() => {
     if (!selectedWalletId) return;
@@ -227,7 +235,7 @@ const Dashboard = () => {
                   name="Crypto Wallet Price Evolution"
                   stroke="#003CE3"
                   strokeWidth={2}
-                  dot={{ fill: "#003CE3", strokeWidth: 0.1 }}
+                  dot={{ fill: "#003CE3", strokeWidth: 0.1, display: "none" }}
                 />
               </LineChart>
             </ResponsiveContainer>
