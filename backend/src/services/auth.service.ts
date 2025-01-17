@@ -83,6 +83,7 @@ export class AuthService {
       });
 
       await this.#emailService.sendVerificationEmail(email, verificationToken);
+      console.log("Verification email sent to:", email, verificationToken);
     } catch (error) {
       throw new Error(`Registration failed => ${error}`);
     }

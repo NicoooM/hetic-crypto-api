@@ -7,8 +7,10 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import VerifyEmail from "./pages/VerifyEmail";
+import Graph from "./pages/Graph";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "pages/Profile";
+import Fiscalite from "pages/Fiscalite";
 
 const App = () => (
   <AuthProvider>
@@ -30,9 +32,25 @@ const App = () => (
         <Route
           path="/profile"
           element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
+            // <ProtectedRoute>
+            <Profile />
+            // </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fiscalite"
+          element={
+            // <ProtectedRoute>
+            <Fiscalite />
+            // </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/graph"
+          element={
+            // <ProtectedRoute>
+            <Graph />
+            // </ProtectedRoute>
           }
         />
       </Routes>
