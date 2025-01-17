@@ -11,7 +11,7 @@ export class ProfileController {
     this.#profileService = new ProfileService();
   }
 
-  get = async (req: Request, res: Response) => {
+  get = async (_: Request, res: Response) => {
     try {
       const profile = await this.#profileService.get();
       res.json(profile);
