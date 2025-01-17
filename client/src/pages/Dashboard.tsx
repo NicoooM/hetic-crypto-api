@@ -148,7 +148,7 @@ const Dashboard = () => {
   }, [selectedWalletId]);
 
   const formatPercent = (value: number) => `${value.toFixed(2)}%`;
-  const formatCurrency = (value: number) => `${value.toLocaleString()}$`;
+  const formatCurrency = (value: number) => `${value.toFixed(2)}€`;
   const timeRanges: TimeRange[] = ["1H", "24H", "7D", "1M", "1Y", "ALL"];
 
   return (

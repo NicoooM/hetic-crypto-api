@@ -32,9 +32,9 @@ const App = () => (
         <Route
           path="/profile"
           element={
-            // <ProtectedRoute>
-            <Profile />
-            // </ProtectedRoute>
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
           }
         />
         <Route
