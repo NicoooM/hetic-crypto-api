@@ -4,11 +4,13 @@ import {
 } from "../constants";
 import jwt from "jsonwebtoken";
 import { prisma } from "lib/prisma";
-import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { hashToken } from "utils/hash-refresh-token";
 
 export class TokenService {
   #prisma = prisma;
-  #bcrypt = bcrypt;
+  #crypto = crypto;
+
   constructor() {}
 
   generateAccessToken({ id, email }: { id: string; email: string }) {
@@ -28,11 +30,11 @@ export class TokenService {
   }
 
   async saveRefreshToken(token: string, userId: number) {
-    const hashedRefreshToken = await this.#bcrypt.hash(
+    const hashedRefreshToken = hashToken(
       token,
-      BCRYPT_SALT_ROUNDS
+      process.env.JWT_REFRESH_SECRET!
     );
-
+    
     return this.#prisma.refreshToken.create({
       data: {
         token: hashedRefreshToken,

@@ -7,15 +7,11 @@ import {
   registerSchema,
 } from "schemas/auth.schemas";
 import z from "zod";
-import {
-  BCRYPT_SALT_ROUNDS,
-  JWT_REFRESH_TOKEN_EXPIRATION_TIME,
-} from "../constants";
-import bcrypt from "bcrypt";
+import { JWT_REFRESH_TOKEN_EXPIRATION_TIME } from "../constants";
+import { hashToken } from "utils/hash-refresh-token";
 
 export class AuthController {
   #authService: AuthService;
-  #bcrypt = bcrypt;
 
   constructor() {
     this.#authService = new AuthService();
@@ -53,7 +49,6 @@ export class AuthController {
   register = async (req: Request, res: Response) => {
     try {
       const { email, password, name } = req.body;
-      console.log(req.body);
       const parsedData = registerSchema.parse({ name, email, password });
 
       await this.#authService.register(parsedData);
@@ -91,9 +86,9 @@ export class AuthController {
     try {
       const refreshToken = refreshTokenSchema.parse(req.cookies.refreshToken);
 
-      const hashedRefreshToken = await this.#bcrypt.hash(
+      const hashedRefreshToken = hashToken(
         refreshToken,
-        BCRYPT_SALT_ROUNDS
+        process.env.JWT_REFRESH_SECRET!
       );
 
       if (!refreshToken) {
@@ -126,10 +121,11 @@ export class AuthController {
       const refreshToken = refreshTokenSchema.parse(req.cookies.refreshToken);
 
       if (refreshToken) {
-        const hashedRefreshToken = await this.#bcrypt.hash(
+        const hashedRefreshToken = hashToken(
           refreshToken,
-          BCRYPT_SALT_ROUNDS
+          process.env.JWT_REFRESH_SECRET!
         );
+
         await this.#authService.logout(hashedRefreshToken);
       }
 
