@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { ProfileService } from "services/profile.service";
-import { registerSchema } from "schemas/auth.schemas";
+import { profileSchema } from "schemas/profile.schemas";
 
 export class ProfileController {
   #profileService: ProfileService;
@@ -29,7 +29,7 @@ export class ProfileController {
     try {
       if (req.user) {
         const { name, email } = req.body;
-        const parsedData = registerSchema.parse({ name, email });
+        const parsedData = profileSchema.parse({ name, email });
         const parsedId = parseInt(req.user.id);
 
         if (!email) {

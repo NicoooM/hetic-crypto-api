@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "lib/prisma";
 import { JWT_REFRESH_TOKEN_EXPIRATION_TIME } from "../constants";
-import type { RegisterSchema } from "schemas/types";
+import type { ProfileSchema } from "schemas/types";
 import { EmailService } from "./email.service";
 
 export class ProfileService {
@@ -30,7 +30,7 @@ export class ProfileService {
     }
   };
 
-  edit = async ({ name, email, id }: RegisterSchema & { id: number }) => {
+  edit = async ({ name, email, id }: ProfileSchema & { id: number }) => {
     try {
       const userData = await prisma.user.findUnique({
         where: {
