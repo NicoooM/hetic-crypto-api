@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import requestIp from "request-ip";
 import { verifyEnv } from "utils/verify-env";
 import { router } from "routes";
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(express.json());
+app.use(requestIp.mw());
 app.use("/api/v1", router);
 
 app.listen(port, () => {
