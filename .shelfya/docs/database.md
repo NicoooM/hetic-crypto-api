@@ -1,149 +1,100 @@
 # Database
 
-This guide covers setting up and interacting with the database in the HETIC Crypto API backend. It explains how to configure Prisma, seed historical cryptocurrency prices, and work with the `WalletService`.
+This document describes how to configure, inspect, and seed the database for the HETIC Crypto API. The project uses [Prisma](https://www.prisma.io/) as its ORM.
 
-## Table of Contents
+## 1. Configuration
 
-- [Prerequisites](#prerequisites)  
-- [Prisma Client Setup](#prisma-client-setup)  
-- [Seeding Currency History](#seeding-currency-history)  
-- [Database Models Overview](#database-models-overview)  
-- [Using WalletService](#using-walletservice)  
+1. Create a `.env` file at the project root:
 
-## Prerequisites
+   ```bash
+   DATABASE_URL="postgresql://user:password@localhost:5432/your_db?schema=public"
+   CRYPTOCOMPARE_API_KEY="your_crypto_compare_api_key"
+   ```
 
-- Node.js ≥ 16  
-- A running database (PostgreSQL, MySQL, SQLite, etc.)  
-- `CRYPTOCOMPARE_API_KEY` environment variable set for seeding  
+2. Install dependencies and generate the Prisma client:
 
-Example `.env`:
-```bash
-DATABASE_URL="postgresql://user:password@localhost:5432/yourdb"
-CRYPTOCOMPARE_API_KEY="your_api_key"
-```
+   ```bash
+   npm install
+   npx prisma generate
+   ```
 
-## Prisma Client Setup
+3. (If you have migrations) Run migrations to set up your schema:
 
-The Prisma client is initialized once and reused across the app.  
-File: `backend/src/lib/prisma.ts`
-```ts
-import { PrismaClient } from "@prisma/client";
+   ```bash
+   npx prisma migrate deploy
+   ```
 
-export const prisma = new PrismaClient();
-```
+## 2. Schema Overview
 
-After editing your Prisma schema (`schema.prisma`), generate the client:
-```bash
-npx prisma generate
-```
+Below are the main data models defined in your Prisma schema:
 
-Run migrations:
-```bash
-npx prisma migrate dev --name init
-```
+### Currency
 
-## Seeding Currency History
+- `id` (Int, PK, auto-increment)  
+- `symbol` (String, unique) — e.g. `"ETH"`, `"BTC"`
 
-We fetch daily historical prices from CryptoCompare and populate two tables: `Currency` and `CurrencyHistory`.
+### CurrencyHistory
+
+- `id` (Int, PK, auto-increment)  
+- `date` (DateTime)  
+- `price` (Float)  
+- `currencyId` (Int, FK → Currency.id)  
+
+> Composite unique key: `(date, currencyId)`
+
+## 3. Seeding the Database
+
+A seed script fetches daily historical prices from CryptoCompare and populates your tables.
 
 File: `backend/src/utils/seed.ts`
-```ts
-// 1. Clean out existing history
-await prisma.currencyHistory.deleteMany({});
 
-// 2. Fetch chunks of daily data
-const currencyHistory = await getCurrencyHistory("ETH", "EUR");
+Key steps:
 
-// 3. Upsert currency & history entries
-await prisma.currency.upsert({ ... });
-await prisma.currencyHistory.upsert({ ... });
-```
+1. **Clean existing data**  
+   ```ts
+   await prisma.currencyHistory.deleteMany({});
+   ```
+2. **Fetch in 2,000-day chunks** using CryptoCompare’s `histoday` API, filtering out zero-volume days.
+3. **Upsert** currencies and their history:
 
-To run the seed script:
+   ```ts
+   await prisma.currency.upsert({ … });
+   await prisma.currencyHistory.upsert({ … });
+   ```
+
+### Running the Seed
+
 ```bash
+# Directly with ts-node
 npx ts-node backend/src/utils/seed.ts
+
+# Or after building (if you have a build step)
+npm run build
+node dist/backend/utils/seed.js
 ```
 
-This will:
-- Delete existing `currencyHistory` records  
-- Fetch all historical ETH/EUR data  
-- Upsert the `Currency` record for ETH  
-- Upsert daily `CurrencyHistory` entries
-
-## Database Models Overview
-
-While your Prisma schema may vary, here is a simplified overview:
-
-- Currency  
-  - id: Int (PK)  
-  - symbol: String (unique)  
-  - createdAt, updatedAt  
-
-- CurrencyHistory  
-  - id: Int (PK)  
-  - date: Date  
-  - price: Float  
-  - currencyId: Int → Currency.id  
-
-- Wallet  
-  - id: Int (PK)  
-  - userId: Int  
-  - address: String  
-  - title: String  
-
-- WalletHistory  
-  - id: Int (PK)  
-  - walletId: Int → Wallet.id  
-  - date: Date  
-  - quantity: Float  
-  - value: Float  
-  - currencyId: Int → Currency.id  
-
-## Using WalletService
-
-The `WalletService` manages user wallets and enriches on-chain balance data with historical ETH prices.
-
-File: `backend/src/services/wallet.service.ts`
-
-### Create a Wallet
+By default, it seeds **ETH → EUR**. To target another pair, edit the final line of `seed.ts`:
 
 ```ts
-import { WalletService } from "services/wallet.service";
-
-const service = new WalletService();
-const newWallet = await service.create({
-  address: "0x1234…abcd",
-  title: "My Ether Wallet",
-  id: userId,
-});
-
-// Returns the created wallet record
-console.log(newWallet);
+populateDb("BTC", "USD");
 ```
 
-What happens under the hood:
-1. Fetch on-chain balance history via Etherscan utility  
-2. Load ETH price history from `CurrencyHistory`  
-3. Calculate `valueInCurrency = quantity * price` per day  
-4. Create a `Wallet` record  
-5. Bulk-insert `WalletHistory` entries with enriched values  
+## 4. Using the Prisma Client
 
-### List All Wallets
+Import the shared client from `lib/prisma.ts`:
 
 ```ts
-const wallets = await service.all(userId);
-console.log(wallets);
+import { prisma } from "../lib/prisma";
+
+async function listHistory() {
+  const data = await prisma.currencyHistory.findMany({
+    where: { currency: { symbol: "ETH" } },
+    orderBy: { date: "asc" },
+  });
+  console.table(data);
+}
+
+listHistory();
 ```
 
-### Delete a Wallet
-
-```ts
-await service.delete(walletId, userId);
-```
-
-This removes both the `Wallet` and its related `WalletHistory`.
-
----
-
-For more on Prisma and schema definitions, see the official docs:  
-https://www.prisma.io/docs/reference/api-reference/prisma-client-reference
+This client is configured to read your `DATABASE_URL` and can be used throughout your backend code.

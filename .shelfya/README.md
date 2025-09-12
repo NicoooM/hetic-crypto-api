@@ -1,115 +1,125 @@
-# Shelfya Configuration & Project Setup
+# Shelfya Crypto API Documentation
 
-This directory contains configuration and documentation for running the HETIC Crypto API project under the Shelfya environment. It covers backend and frontend setup, environment variables, and key behaviors (CORS, security headers, token refresh).
+This document guides you through installing, configuring, and using the HETIC Crypto API (backend) and its accompanying client service. You’ll see how to start the server, explore available routes, and integrate with the preconfigured Axios client in your frontend.
 
-## Prerequisites
+## 1. Installation
 
-- Node.js ≥ 14
-- npm or yarn
-- Optional: `dotenv` for local `.env` support
-
-## Environment Variables
-
-Create a `.env` file in your project root:
-
-```
-# Backend
-PORT=5000
-CLIENT_URL=http://localhost:3000
-
-# Frontend (create a .env in client/)
-REACT_APP_API_BASE_URL=http://localhost:5000/api/v1
-```
-
-## Starting the Backend
-
-1. Install dependencies:
-
-   ```bash
-   cd backend
-   npm install
-   ```
-
-2. Run in development mode:
-
-   ```bash
-   npm run dev
-   ```
-
-3. The Express server will:
-
-   - Listen on `process.env.PORT` (default 5000)
-   - Mount all routes under `/api/v1`
-   - Use Helmet, CORS, cookie-parser, and request-ip middleware
-   - Verify required environment variables on startup
-
-## Starting the Frontend
-
-1. Install dependencies:
-
-   ```bash
-   cd client
-   npm install
-   ```
-
-2. Run the React app:
-
-   ```bash
-   npm start
-   ```
-
-3. Axios is pre-configured in `src/services/api.ts` to:
-
-   - Point at `REACT_APP_API_BASE_URL` (`http://localhost:5000/api/v1`)
-   - Include cookies (`withCredentials: true`)
-   - Attach `Authorization: Bearer <token>` header on each request
-   - Auto-refresh access tokens on 401/403 responses
-
-## API Endpoint Structure
-
-All endpoints are prefixed with `/api/v1`. For example:
-
-- Authentication
-  - `POST /api/v1/auth/login`
-  - `POST /api/v1/auth/refresh` (handled automatically by the client)
-  - `POST /api/v1/auth/logout`
-- Crypto data (example)
-  - `GET /api/v1/coins`
-  - `GET /api/v1/coins/:id`
-
-> Check `backend/src/routes` for a full list of available routes.
-
-## Token Refresh Flow
-
-1. Upon 401/403, the client interceptor:
-   - Marks the original request _retry
-   - Sends a `POST /auth/refresh` (cookies carry the refresh token)
-2. On success:
-   - Stores new `accessToken` in `localStorage`
-   - Retries all failed requests with the new token
-3. On failure:
-   - Clears stored token
-   - Waits ~25 seconds, then redirects to `/login`
-
-## Useful Commands
+Clone the repository and install dependencies for both backend and client:
 
 ```bash
-# From project root
-npm run dev:backend   # starts Express + auto-reload
-npm run dev:frontend  # starts React dev server
+git clone https://github.com/NicoooM/hetic-crypto-api.git
+cd hetic-crypto-api
 
-npm test              # runs any unit/integration tests
+# Install backend deps
+cd backend
+npm install
+
+# Install client deps
+cd ../client
+npm install
 ```
 
-## Troubleshooting
+## 2. Environment Variables
 
-- CORS errors? Ensure `CLIENT_URL` matches your React `localhost` port.
-- Token not stored? Check browser’s localStorage under key `token`.
-- Env vars not loaded? Install `dotenv` or set them in your shell before starting.
+### Backend (`backend/.env`)
+Create a `.env` file in `backend/` with at least:
+
+- `PORT` — port number (e.g. `5000`)
+- `CLIENT_URL` — frontend origin (e.g. `http://localhost:3000`)
+- JWT secrets and database URI for your setup (used by `verifyEnv`)
+
+### Client (`client/.env`)
+Create a `.env` file in `client/` with:
+
+- `REACT_APP_API_BASE_URL` — base API URL (defaults to `http://localhost:5000/api/v1`)
+
+## 3. Running the App
+
+Start the backend server:
+
+```bash
+cd backend
+npm run dev    # or npm start
+```
+
+Start the React client:
+
+```bash
+cd client
+npm start
+```
+
+> The backend listens on `PORT` and mounts all routes under `/api/v1`.
+
+## 4. API Routes Overview
+
+Base URL:  
+`http://<HOST>:<PORT>/api/v1`
+
+### Public Routes
+
+- `POST /auth/register`  
+- `POST /auth/login`  
+- `POST /auth/refresh`  
+  • Uses HTTP‐only cookies to refresh access tokens; no request body needed.
+
+### Protected Routes
+
+All the following require a valid **Bearer** `Authorization` header.
+
+- Wallet  
+  • `GET /wallet` — fetch balances  
+  • `POST /wallet/deposit` — add funds  
+
+- History  
+  • `GET /history` — fetch transaction history  
+
+- Portfolio  
+  • `GET /portfolio` — fetch portfolio breakdown  
+
+- Profile  
+  • `GET /profile/me` — fetch user profile  
+  • `PATCH /profile` — update user data  
+
+> Routes under `/wallet`, `/history`, and `/profile` use `verifyAccessToken` middleware.
+
+## 5. Client Service (`client/src/services/api.ts`)
+
+The client exposes a ready‐to‐use Axios instance that handles:
+
+- Base URL from `REACT_APP_API_BASE_URL`
+- `withCredentials: true` to include HTTP-only cookies
+- Automatic `Authorization: Bearer <token>` header from `localStorage`
+- Silent token refresh on 401/403 via `/auth/refresh`
+- Queued requests during refresh; redirect to `/login` on failure
+
+### Basic Usage
+
+```ts
+import API from './services/api';
+
+// Fetch wallet balances
+async function loadWallet() {
+  const { data } = await API.get('/wallet');
+  return data;
+}
+
+// Trigger a protected route
+API.get('/profile/me')
+   .then(res => console.log(res.data))
+   .catch(err => console.error(err));
+```
+
+### Token Management
+
+The Axios instance will:
+
+1. Read `localStorage.getItem('token')` and attach it to headers.
+2. On 401/403, call `/auth/refresh` (cookies handle the refresh token).
+3. Update `localStorage` with the new `accessToken`.
+4. Retry any failed requests automatically.
+5. If refresh fails, clear the token and redirect to `/login` after a delay.
 
 ---
 
-For detailed route definitions and service examples, browse:
-
-- `backend/src/routes`
-- `client/src/services/api.ts`
+Happy coding! If you run into issues, ensure your environment variables match and ports don’t conflict.

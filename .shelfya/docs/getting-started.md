@@ -1,174 +1,119 @@
 # Getting Started
 
-This guide walks you through setting up and running the crypto API backend and React client. You’ll also see how the shared `API` service handles authentication, token storage, and automatic token refreshing.
+This guide will help you set up and run the HETIC Crypto API locally, including both the backend server and the React client. By the end, you’ll be able to make authenticated requests with automatic token refresh.
 
 ## Prerequisites
 
-- Node.js ≥ 14
-- npm or Yarn
+- Node.js v14+  
+- npm or Yarn  
 - Git
 
-## Repository Structure
-
-```
-.
-├── backend/           # Express API server
-│   └── src/index.ts
-└── client/            # React frontend
-    └── src/services/api.ts
-```
-
-## 1. Clone & Install
+## Clone the Repository
 
 ```bash
 git clone https://github.com/NicoooM/hetic-crypto-api.git
 cd hetic-crypto-api
-
-# Backend deps
-cd backend
-npm install
-# or
-# yarn install
-
-# Client deps
-cd ../client
-npm install
-# or
-# yarn install
 ```
 
-## 2. Environment Variables
+## 1. Backend Setup
 
-Create a `.env` file in each folder:
+1. Navigate to the backend folder and install dependencies:
 
-### Backend (`backend/.env`)
-
-```
-PORT=5000
-CLIENT_URL=http://localhost:3000
-```
-
-### Client (`client/.env`)
-
-```
-REACT_APP_API_BASE_URL=http://localhost:5000/api/v1
-```
-
-> The client’s `REACT_APP_API_BASE_URL` points at the backend route `/api/v1`.
-
-## 3. Running the Backend
-
-```bash
-cd backend
-npm run dev
-```
-
-- The Express server listens on `http://localhost:5000`.
-- API routes are mounted under `/api/v1`.
-
-Key middleware in `src/index.ts`:
-
-- `cors` (allows requests from `CLIENT_URL` with credentials)
-- `cookie-parser` (parses HTTP cookies)
-- `helmet` (security headers)
-- `request-ip` (logs client IP)
-
-Example start-up log:
-
-```
-Verifying environment variables…
-Listening on port 5000...
-```
-
-## 4. Running the Client
-
-```bash
-cd client
-npm start
-```
-
-- React app runs on `http://localhost:3000`.
-- All API calls go to `http://localhost:5000/api/v1` by default.
-
-## 5. API Service Overview
-
-The shared Axios instance at `client/src/services/api.ts` handles:
-
-1. **Base URL**  
-   ```ts
-   baseURL: process.env.REACT_APP_API_BASE_URL
+   ```bash
+   cd backend
+   npm install
    ```
 
-2. **Credentials**  
-   ```ts
-   withCredentials: true
+2. Create a `.env` file in `backend/` and set at least:
+
+   ```
+   PORT=5000
+   CLIENT_URL=http://localhost:3000
    ```
 
-3. **Request Interceptor**  
-   Automatically attaches the Bearer access token from `localStorage`:
-   ```ts
-   API.interceptors.request.use(config => {
-     const token = localStorage.getItem("token");
-     if (token) {
-       config.headers.Authorization = `Bearer ${token}`;
-     }
-     return config;
-   });
+   - `PORT` is where the API will listen (default: 5000).  
+   - `CLIENT_URL` is the allowed origin for CORS (default: `http://localhost:3000`).
+
+3. Start the server:
+
+   ```bash
+   npm run dev    # or `npm start` for production
    ```
 
-4. **Response Interceptor**  
-   - Catches `401/403` errors  
-   - Prevents multiple simultaneous refresh requests  
-   - Calls `/auth/refresh` endpoint to get a new access token  
-   - Retries the original request with updated token  
-   - On refresh failure, clears token & redirects to `/login`
+   You should see:
+   ```
+   Listening on port 5000...
+   ```
 
-### Example Usage
+4. Base URL  
+   All endpoints are mounted under `/api/v1`, e.g.:
+   ```
+   http://localhost:5000/api/v1/<resource>
+   ```
 
-```ts
-import API from "services/api";
+## 2. Client Setup
 
-// Login
-const login = async (email: string, password: string) => {
-  const { data } = await API.post("/auth/login", { email, password });
-  // { accessToken, user }
-  localStorage.setItem("token", data.accessToken);
-  return data.user;
-};
+1. In a new terminal, navigate to the client folder and install:
 
-// Fetch user profile
-const fetchProfile = async () => {
-  const { data } = await API.get("/users/me");
+   ```bash
+   cd client
+   npm install
+   ```
+
+2. Create a `.env` file in `client/`:
+
+   ```
+   REACT_APP_API_BASE_URL=http://localhost:5000/api/v1
+   ```
+
+   - `REACT_APP_API_BASE_URL` points to your backend API.
+
+3. Start the React development server:
+
+   ```bash
+   npm start
+   ```
+
+   The app runs by default on `http://localhost:3000` and communicates with the API.
+
+## 3. Authentication Flow
+
+The client’s API service uses Axios interceptors to:
+
+- Attach the access token from `localStorage` to every request.
+- Automatically refresh the access token on `401/403` responses.
+- Store the new token and retry failed requests.
+- Redirect to `/login` after a failed refresh.
+
+### Example: Login and Fetch Profile
+
+```typescript
+import API from './services/api';
+
+async function login(email: string, password: string) {
+  // Send credentials; server sets a refresh token cookie
+  const { data } = await API.post('/auth/login', { email, password });
+  localStorage.setItem('token', data.accessToken);
+}
+
+async function getProfile() {
+  // Automatically includes Authorization header
+  const { data } = await API.get('/users/me');
   return data;
-};
+}
+
+// Usage
+await login('user@example.com', 'password123');
+const profile = await getProfile();
+console.log(profile);
 ```
 
-## 6. Testing Authentication Flow
+## 4. Troubleshooting
 
-1. **Login**  
-   ```bash
-   POST http://localhost:5000/api/v1/auth/login
-   {
-     "email": "you@example.com",
-     "password": "secret"
-   }
-   ```
-   - Returns `{ accessToken }`
-   - Sets refresh token in an HTTP-only cookie.
-
-2. **Auto-Refresh**  
-   - When the access token expires, the client interceptor calls:
-     ```
-     POST http://localhost:5000/api/v1/auth/refresh
-     ```
-   - Server reads refresh token from cookie and issues a new access token.
-
-3. **Logout**  
-   ```bash
-   POST http://localhost:5000/api/v1/auth/logout
-   ```
-   - Clears the refresh token cookie on the server.
+- Check console output in both backend and client for errors.
+- Ensure cookies are enabled in your browser (refresh token uses HTTP-only cookies).
+- Verify that your `.env` variables match the defaults if you’ve changed ports or hosts.
 
 ---
 
-You’re now ready to develop and extend the crypto API and React client! For details on available routes, see the `/routes` module in the backend.
+You’re now ready to explore and build on the HETIC Crypto API. Happy coding!
