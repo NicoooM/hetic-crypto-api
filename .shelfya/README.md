@@ -1,125 +1,62 @@
-# Shelfya Crypto API Documentation
+# Shelfya Configuration
 
-This document guides you through installing, configuring, and using the HETIC Crypto API (backend) and its accompanying client service. You’ll see how to start the server, explore available routes, and integrate with the preconfigured Axios client in your frontend.
+This directory holds the configuration and deployment settings for Shelfya. Use it to define how your backend and frontend services are built, deployed, and run on Shelfya’s platform.
 
-## 1. Installation
+## Required Files
 
-Clone the repository and install dependencies for both backend and client:
+- `shelfya.yml`  
+  Defines build steps, services, environment variables, and routing.  
+- `.env` (or use Shelfya’s dashboard env settings)  
+  Holds your environment variables (see below).
 
-```bash
-git clone https://github.com/NicoooM/hetic-crypto-api.git
-cd hetic-crypto-api
+## Environment Variables
 
-# Install backend deps
-cd backend
-npm install
+Configure these in Shelfya’s environment settings or in your local `.env` file:
 
-# Install client deps
-cd ../client
-npm install
+- **PORT**  
+  The port on which the Express backend listens (e.g., `5000`).
+
+- **CLIENT_URL**  
+  The allowed CORS origin for your backend (e.g., `https://your-app.com`).
+
+- **REACT_APP_API_BASE_URL**  
+  The base URL your React client uses to send API requests (e.g., `https://your-api.com/api/v1`).
+
+## Example shelfya.yml
+
+```yaml
+version: "1.0"
+services:
+  backend:
+    path: ../backend
+    build:
+      install: npm install
+      start: npm run start
+    env:
+      PORT: 5000
+      CLIENT_URL: https://your-app.com
+
+  frontend:
+    path: ../client
+    build:
+      install: npm install
+      build: npm run build
+      start: npm run serve
+    env:
+      REACT_APP_API_BASE_URL: https://your-api.com/api/v1
+
+routes:
+  - service: frontend
+    path: /
+  - service: backend
+    path: /api/v1
 ```
 
-## 2. Environment Variables
+## Deploying
 
-### Backend (`backend/.env`)
-Create a `.env` file in `backend/` with at least:
+1. Commit your `shelfya.yml` and push to your Git repository.
+2. On Shelfya’s dashboard, connect your repo and branch.
+3. Verify that the environment variables match those in this folder.
+4. Trigger a deployment; Shelfya will handle build and routing.
 
-- `PORT` — port number (e.g. `5000`)
-- `CLIENT_URL` — frontend origin (e.g. `http://localhost:3000`)
-- JWT secrets and database URI for your setup (used by `verifyEnv`)
-
-### Client (`client/.env`)
-Create a `.env` file in `client/` with:
-
-- `REACT_APP_API_BASE_URL` — base API URL (defaults to `http://localhost:5000/api/v1`)
-
-## 3. Running the App
-
-Start the backend server:
-
-```bash
-cd backend
-npm run dev    # or npm start
-```
-
-Start the React client:
-
-```bash
-cd client
-npm start
-```
-
-> The backend listens on `PORT` and mounts all routes under `/api/v1`.
-
-## 4. API Routes Overview
-
-Base URL:  
-`http://<HOST>:<PORT>/api/v1`
-
-### Public Routes
-
-- `POST /auth/register`  
-- `POST /auth/login`  
-- `POST /auth/refresh`  
-  • Uses HTTP‐only cookies to refresh access tokens; no request body needed.
-
-### Protected Routes
-
-All the following require a valid **Bearer** `Authorization` header.
-
-- Wallet  
-  • `GET /wallet` — fetch balances  
-  • `POST /wallet/deposit` — add funds  
-
-- History  
-  • `GET /history` — fetch transaction history  
-
-- Portfolio  
-  • `GET /portfolio` — fetch portfolio breakdown  
-
-- Profile  
-  • `GET /profile/me` — fetch user profile  
-  • `PATCH /profile` — update user data  
-
-> Routes under `/wallet`, `/history`, and `/profile` use `verifyAccessToken` middleware.
-
-## 5. Client Service (`client/src/services/api.ts`)
-
-The client exposes a ready‐to‐use Axios instance that handles:
-
-- Base URL from `REACT_APP_API_BASE_URL`
-- `withCredentials: true` to include HTTP-only cookies
-- Automatic `Authorization: Bearer <token>` header from `localStorage`
-- Silent token refresh on 401/403 via `/auth/refresh`
-- Queued requests during refresh; redirect to `/login` on failure
-
-### Basic Usage
-
-```ts
-import API from './services/api';
-
-// Fetch wallet balances
-async function loadWallet() {
-  const { data } = await API.get('/wallet');
-  return data;
-}
-
-// Trigger a protected route
-API.get('/profile/me')
-   .then(res => console.log(res.data))
-   .catch(err => console.error(err));
-```
-
-### Token Management
-
-The Axios instance will:
-
-1. Read `localStorage.getItem('token')` and attach it to headers.
-2. On 401/403, call `/auth/refresh` (cookies handle the refresh token).
-3. Update `localStorage` with the new `accessToken`.
-4. Retry any failed requests automatically.
-5. If refresh fails, clear the token and redirect to `/login` after a delay.
-
----
-
-Happy coding! If you run into issues, ensure your environment variables match and ports don’t conflict.
+For more details, visit Shelfya’s documentation: https://docs.shelfya.com/overview.
