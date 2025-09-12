@@ -1,52 +1,79 @@
-# Shelfya Deployment
+# Shelfya Deployment Guide
 
-This directory contains configuration and notes for deploying the HETIC Crypto API on Shelfya. It outlines the project structure, required environment variables, and how the frontend and backend communicate.
+This document explains how to configure and deploy the **Hetic Crypto API** on the Shelfya platform. The API is built with Express.js, TypeScript, and uses JWT-based authentication with PostgreSQL as its backing database.
 
-## Project Structure
+## Prerequisites
 
-- **backend/**  
-  An Express API server written in TypeScript  
-  - Entry point: `src/index.ts`  
-  - Routes exposed under `/api/v1`  
-  - Uses cookies for authentication and CORS protection
+- A Shelfya account
+- A PostgreSQL add-on attached to your Shelfya app
+- Environment variables (see below)
+- CryptoCompare and Etherscan API keys
 
-- **client/**  
-  A React application  
-  - API service in `src/services/api.ts`  
-  - Communicates with the backend using Axios  
-  - Handles token refresh via HTTP-only cookies
+## Environment Variables
 
-## Required Environment Variables
+The API will validate that all required environment variables are present at startup. Configure the following in your Shelfya **Settings → Environment**:
 
-Shelfya must inject the following into each service:
+Required variables  
+```text
+JWT_ACCESS_SECRET
+JWT_REFRESH_SECRET
+JWT_ACCESS_TOKEN_EXPIRATION_TIME    # e.g. "900000"  (in milliseconds)
+JWT_REFRESH_TOKEN_EXPIRATION_TIME   # e.g. "604800000" (7 days in ms)
+SMTP_HOST
+SMTP_PORT
+SMTP_USER
+SMTP_PASS
+API_URL                             # e.g. "https://api.your-domain.com"
+CRYPTOCOMPARE_API_KEY
+ETHERSCAN_API_KEY
+CLIENT_URL                          # e.g. "https://app.your-domain.com"
+DATABASE_URL                        # provided by your Postgres add-on
+POSTGRES_USER                       # provided by your Postgres add-on
+POSTGRES_PASSWORD                   # provided by your Postgres add-on
+POSTGRES_DB                         # provided by your Postgres add-on
+PORT                                # e.g. "3000"
+```
 
-Backend (`backend`)
+## Build & Run Commands
 
-- `PORT`  
-  Port for the Express server (e.g., `5000`)
-- `CLIENT_URL`  
-  Origin allowed by CORS (e.g., `https://your-app.com`)
+1. **Install dependencies & build**  
+   In your Shelfya dashboard, set the build command to:
+   ```bash
+   npm install
+   npm run build
+   ```
 
-Client (`client`)
+2. **Start the server**  
+   Set the run command to:
+   ```bash
+   npm start
+   ```
 
-- `REACT_APP_API_BASE_URL`  
-  Base URL for API requests (e.g., `https://api.your-app.com/api/v1`)
+The Express server will listen on the port you specify in `PORT`. All API routes are prefixed with `/api/v1`.
 
-## Runtime Behavior
+## CORS & Security
 
-1. **Backend**  
-   - Applies security middlewares: `helmet`, `cors`, `cookie-parser`.  
-   - Reads client IP via `request-ip`.  
-   - Validates environment on startup (`verifyEnv`).  
-   - Listens on `process.env.PORT`.
+- CORS is configured to allow your `CLIENT_URL` and support credentials.
+- Helmet is enabled for common HTTP header hardening.
+- Cookies are parsed via `cookie-parser`.
+- Client IPs are captured using `request-ip` middleware.
 
-2. **Client**  
-   - Axios instance uses `withCredentials: true` to include cookies.  
-   - Attaches `Authorization: Bearer <token>` header if a token exists in `localStorage`.  
-   - On 401/403, attempts token refresh via `/auth/refresh`; on failure, clears the token and redirects to `/login`.
+## Verifying Configuration
 
-## Next Steps
+On startup, the app runs a quick environment check. If any required variable is missing, the process will exit with an error. Monitor your Shelfya logs to confirm:
 
-- Place any Shelfya-specific YAML/JSON files alongside this README.  
-- Ensure build commands and service definitions in your Shelfya dashboard reference the `backend` and `client` folders.  
-- For detailed setup and development instructions, see the project’s root README.
+```bash
+> Listening on port 3000...
+> All required environment variables are set.
+```
+
+Once deployed, you can test your health-check or any public endpoint under:
+
+```
+https://<your-app>.shelfya.app/api/v1/<route>
+```
+
+---
+For more information about configuring Express or JWT tokens, refer to the official Express docs:  
+https://expressjs.com/  
+https://www.npmjs.com/package/jsonwebtoken
