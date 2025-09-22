@@ -11,6 +11,33 @@ export class WalletController {
     this.#walletService = new WalletService();
   }
 
+  get = async (req: Request, res: Response) => {
+    try {
+      if (req.user) {
+        const walletId = parseInt(req.params.id, 10);
+        const userId = parseInt(req.user.id);
+        if (isNaN(walletId)) {
+          res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: "Invalid wallet id" });
+        }
+        const wallet = await this.#walletService.get(walletId, userId);
+        res.json(wallet);
+      }
+    } catch (error: any) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        res.status(StatusCodes.NOT_FOUND).json({ error: "Wallet not found" });
+      } else {
+        res
+          .status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json({ message: error.message });
+      }
+    }
+  };
+
   delete = async (req: Request, res: Response) => {
     try {
       if (req.user) {
